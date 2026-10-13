@@ -1,0 +1,9 @@
+{
+  "name": "spec-driven-development-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": { "test": "node --test test/*.test.mjs", "doctor": "node bin/sddctl.mjs doctor" },
+  "dependencies": { "ajv": "8.17.1", "yaml": "2.8.1" }
+}
