@@ -1,6 +1,6 @@
 # タスク・TDD・レビュー・検証設計
 
-状態: 設計ドラフト。入力: [開発・検証要求](../requirements/development-verification.md)。実行: [ツール設計](tool-integration.md)。
+状態: 設計ドラフト（実装結果を反映済み）。入力: [開発・検証要求](../requirements/development-verification.md)。実行: [ツール設計](tool-integration.md)。
 
 ## DES-DEV-001 タスクと追跡
 
@@ -8,17 +8,18 @@
 
 | 項目 | 内容 |
 | --- | --- |
-| `id`, `title`, `type` | 安定した `TASK-0001` 形式の ID、目的、`behavior` / `documentation` / `setup` 等の種類 |
+| `id`, `title`, `type` | 安定した `TASK-0001` 形式の ID、目的、`behavior` / `documentation` / `setup` の種類 |
 | `requirementIds`, `designIds`, `acceptanceIds` | 原本要件・設計・受入条件の参照 |
-| `dependsOn`, `inputs` | 先行タスクと参照ファイル・版 |
-| `assignee`, `editPaths` | 担当役割、合意したコード・テスト・文書の編集範囲 |
-| `verification` | TDD または適切な確認方法、プロファイル、実行環境、手動確認者・手順 |
+| `dependsOn`, `inputs` | 先行タスクと参照ファイル・版（パス→ `sha256` のマップ。完了時に現在版と一致を確認） |
+| `assignee`, `editPaths` | 担当役割（agent の role 名）、合意したコード・テスト・文書の編集範囲 |
+| `verification` | `method`、`environment` を必須とし、任意で `profile`、`reviewer`、`procedure` |
 | `completionCriteria`, `status` | タスク単位の完了条件と `pending` / `active` / `blocked` / `verified` / `obsolete` |
-| `evidence`, `review` | 対象版付きの検証証跡、指摘・独立レビュー参照 |
+| `evidence`, `review` | 検証証跡・独立レビュー証跡のファイル参照（`verification/<証跡ID>.json`） |
 
 タスク担当は新しい要件を追加しない。設計不足なら不足と選択肢を返し、上流の成果物・承認へ戻る。追跡表は `traceability.json` とし、要件・設計・受入条件とタスク・テスト・証跡の関係を列挙する。原本から現行テスト、変更記録から今回の実行結果へ辿れるようにする。ID の存在だけで適合と判定しない。
 
-タスクの `verified` は必要なタスク検証の実施を意味し、人の開発完了承認ではない。廃止したタスクも理由・元の結果を残し、履歴から削除しない。
+タスクの `verified` は必要なタスク検証の実施を意味し、人の開発完了承認ではない。追跡表の各 link は `requirementId`、`designIds`、`acceptanceIds`、`taskIds`、`testRefs`、`evidenceRefs`（相対パスと任意の `#識別子`）を持つ。`traceability.validate` は原本・変更記録内の `REQ` / `NFR` / `AC` / `DES` ID とタスクの実在、参照ファイルの実在、要件・受入条件の未対応を検査し、意味の適合はレビューへ残す（`semanticReviewRequired`）。
+廃止したタスクも理由・元の結果を残し、履歴から削除しない。
 
 ## DES-DEV-002 実装と検証の順序
 
@@ -39,6 +40,8 @@
 
 ## DES-DEV-003 証跡・独立レビュー・完了
 
+証跡は `verification.run`（隔離実行）または `verification.record`（窓口が記録する人の手動・レビュー結果）だけで作成し、`verification/<証跡ID>.json` に保存する。証跡の項目は `id`、`mode`（`automatic` / `manual` / `review`）、`taskIds`、`inputRevisions`、`environment`、`timestamp`、`method`、`status`、`result`（マスク済み）、`nextAction` を必須とし、`command`・`exitCode`（自動のみ）、`human`、`independent`・`reviewer`（レビュー）、`tddStage`（`red` / `green` / `refactor` / `not-applicable`）、`failureKind`（`behavior` / `environment` / `syntax` / `unknown`）を任意で持つ。自動失敗は `unknown` とし、意図した振る舞いの Red かは人が観測して手動証跡へ分類する。
+
 検証結果は変更記録の `verification/` に保存し、対象版は必要な仕様・コード・テスト・設定のファイル集合と SHA-256 で特定する。実行前後で入力版が変わっていれば、その結果を現行版の成功へ適用しない。
 
 | 項目 | 共通 | 自動検証 | 手動検証 |
@@ -52,6 +55,8 @@ reviewer は原本・変更記録・コード・テスト・受入条件・証�
 
 実装前の整合性レビューと実装後の適合レビューを分ける。サブエージェントが使えなければ人の独立確認を記録できる。実装担当の自己評価・役割名だけの変更は独立確認として採用しない。
 
+タスクを `verified` にする、または開発完了へ進めるには、依存タスクが完了し、証跡と独立レビューが存在し、成功した検証があり、必須の未実施・実行不能がなく、タスク入力が計画時から変わっていないことをランナーが検査する。`behavior` は意図した振る舞いの Red（`failed` かつ `behavior`）、Green、Refactor 後の成功を要する。独立レビューは `independent: true` で `reviewer` がタスク担当と異なり、現在の入力版に対して成功したものに限る。振る舞いの Red と Green は履歴で、現在版の入力一致は Refactor 後の検証とレビューで確認する。
+
 必要なタスク・受入確認・独立レビュー・未解決事項の扱いが揃った場合だけ、工程の対象版と結果を技術責任者に提示する。人の開発完了承認後も Git 操作の許可・マージ・本番反映は別の状態とする。
 
 ## DES-DEV-004 仕様変更と再検証
@@ -62,7 +67,7 @@ reviewer は原本・変更記録・コード・テスト・受入条件・証�
 
 ## DES-DEV-005 本仕組みの受入確認計画
 
-以下は将来の実装後の確認計画であり、今回試験を実行した結果ではない。各受入条件をこの計画へ対応させ、意味上の期待結果は要求本文を正とする。補助機能の単体・ローカル更新の中断試験、Copilot Local 上の直列シナリオ、人の確認を使う。
+以下は実装後の確認計画である。ランナーの単体テスト（`npm test`）は実施済みだが、以下の受入条件ごとの実機確認結果ではない。各受入条件をこの計画へ対応させ、意味上の期待結果は要求本文を正とする。補助機能の単体・ローカル更新の中断試験、Copilot Local 上の直列シナリオ、人の確認を使う。
 
 役割の並行実行・MCP 連携は検証しない。これらを模した連携試験・並行役割試験を追加しない。共有書き込みの直列化は設計・手順を確認し、古い版の拒否とローカル更新の中断は直列の操作で確認する。支援先アプリの必要な統合・E2E 等とは別の除外である。
 
@@ -98,6 +103,7 @@ reviewer は原本・変更記録・コード・テスト・受入条件・証�
 | AC-SPEC-010 | 権限・障害の設計例で認証認可・エラー・運用・移行の不足を指摘 |
 | AC-SPEC-011 | 要件と内部構成・テスト・技術判断の対応を確認 |
 | AC-SPEC-012 | 既存の非5層構成で、例外の合意と不要な全面再構成の非追加を確認 |
+| AC-SPEC-013 | ADR 案を含む内部設計の承認後、Accepted だけが正式番号で原本へ反映され、仮番号の対応が変更記録に残ることを確認。ADR なしの案件も進行できる |
 | AC-DEV-001 | 設計未対応・検証方法なしのタスクを実装前に指摘 |
 | AC-DEV-002 | 一実装タスクの意図した Red / Green / 再検証と環境エラーの区別 |
 | AC-DEV-003 | 自動・手動証跡を区別し、必要な統合試験の未実施と検証対象外を分ける |

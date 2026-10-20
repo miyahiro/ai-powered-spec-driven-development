@@ -41,11 +41,15 @@ VS Code Local で Workspace Trust、custom agents と agent skills が利用で�
 
 | 保存先 | 役割 |
 | --- | --- |
-| `docs/spec/current/` | 全体仕様の候補原本。既定ブランチへの取り込み・本番反映は別 |
-| `docs/spec/changes/CHG-0001/` | change.md、工程差分、tasks.json、traceability.json、verification/ |
+| `docs/spec/current/` | 全体仕様の候補原本。既定ブランチへの取り込み・本番反映は別。内部設計の判断記録（ADR）は `design/decisions/` |
+| `docs/spec/changes/CHG-0001/` | change.md、工程差分、tasks.json、traceability.json、verification/、decisions/（ADR 案。推奨・任意） |
 | `docs/scratchpad/CHG-0001/` | state.json、operations.json、pending/、人向け overview.md |
 
-案件番号をパスへ使用し、任意のブランチ名をパスにしない。ランナーの書き込みは workspace 相対 POSIX パスだけ。絶対パス、`..`、`.`、空のパス成分、symlink、秘密ファイル、制御設定への書き込みを拒否する。通常タスクは `.git/`、`.github/`、`.vscode/` を変更できない。
+案件番号をパスへ使用し、任意のブランチ名をパスにしない。
+
+設計判断記録（ADR）は内部設計の判断だけを対象とし、起票は推奨である。案件中は `docs/spec/changes/CHG-0001/decisions/` に仮番号で起票し、内部設計の工程一式に含めて承認する。承認後の Accepted の ADR を `canonical-spec-update` で `docs/spec/current/design/decisions/ADR-0001-<題>.md` へ正式番号で反映する。反映後は書き換えず、新しい ADR で置き換える。既存原本の暗黙の判断は遡って起票しない。専用のスキル・承認工程・ランナー設定は追加せず、通常の文書として扱う。テンプレートは [adr.md](../skills/ddd-internal-design/templates/adr.md)。
+
+ランナーの書き込みは workspace 相対 POSIX パスだけ。絶対パス、`..`、`.`、空のパス成分、symlink、秘密ファイル、制御設定への書き込みを拒否する。通常タスクは `.git/`、`.github/`、`.vscode/` を変更できない。
 
 ファイルの revision は正確なバイト列の `sha256:<64桁>`。未作成は `null`。工程 manifest は相対パスとファイル hash のソート済み map から計算する。フォルダ roots によりファイル追加・削除も検出する。状態・質問・承認記録は承認対象に含めない。外部設計と内部設計は別の成果物集合を選ぶ。新規プロジェクトでは `design/external/` と `design/internal/` に分けると後工程の追加を前工程の変更と混同しにくい。
 

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "operation": "question.open",
+  "operationId": "register-CHG-0001-1",
+  "role": "orchestrator",
+  "changeId": "CHG-0001",
+  "branch": null,
+  "expectedRevisions": {
+    "docs/scratchpad/CHG-0001/state.json": null
+  },
+  "payload": {
+    "kind": "enhancement",
+    "purpose": "要求・設計などの仕様成果物を大きな機能分類ごとに整理し、番号と分類の関係を人が確認しやすくする",
+    "scope": {
+      "in": [
+        "要求・設計などの仕様成果物の機能大分類と番号付けの改善",
+        "仕様成果物を生成するSDD用Agent・スキルの記述規則の改善",
+        "改善に直接関連するテンプレート・ガイドの整合"
+      ],
+      "out": [
+        "CHG・TASKなどの管理IDの番号体系変更",
+        "番号・分類に関係しない機能変更"
+      ]
+    },
+    "actors": {
+      "customer": "宮下",
+      "technicalLead": "宮下"
+    },
+    "git": {
+      "defaultBranch": null,
+      "branch": null,
+      "baseCommit": null
+    }
+  }
+}

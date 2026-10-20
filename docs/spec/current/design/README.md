@@ -2,7 +2,7 @@
 
 ## 位置付け
 
-状態: 設計ドラフト。要求定義書の作成・修正依頼や本設計の作成依頼を、要求・設計の承認とは扱わない。エージェント・スキル・補助機能は未実装である。
+状態: 設計ドラフト（実装結果を反映済み）。要求定義書の作成・修正依頼や本設計の作成依頼を、要求・設計の承認とは扱わない。8 agent、15 skill、補助機能（`.github/sdd/` のランナー・ガード・スキーマ・単体テスト）は実装済みだが、Copilot Local の実機確認と隔離検証は未実施であり、受入済みとは扱わない。
 
 設計入力は [要求定義書](../requirements/README.md) とする。出典のアイデア文書と記述が異なる場合は、レビュー後の要求定義を優先し、要求間の矛盾は人に確認する。本フォルダは本仕組み自体の設計であり、支援先アプリの業務設計ではない。
 
@@ -16,6 +16,7 @@
 | DES-COM-004 | 原本・変更記録・Scratchpad を分離し、状態は導入先のファイルへ保存する。会話履歴やメモリー、外部サーバーだけを再開の根拠にしない。 |
 | DES-COM-005 | workspace に必要な設定・スキル・補助機能をコピーする簡単な導入方式とする。更新は差分確認後に行い、自動更新や配布方式の比較は行わない。Spec Kit と専用 MCP は必須にしない。 |
 | DES-COM-006 | 通常の確認・合意範囲内の反復作業には再許可を要求しない。役割の並行実行・MCP 連携は検証対象外とし、支援先アプリの必要なテストは別途実施する。 |
+| DES-COM-007 | 後から変えにくい内部設計の判断は、設計判断記録（ADR）として残すことを推奨する。起票は必須ではなく、専用の工程・承認・ランナー設定を追加せず通常の文書として扱う。既存原本の暗黙の判断は遡って起票しない。詳細は [DES-SPEC-007](specification-management.md)。 |
 
 ```mermaid
 flowchart LR
@@ -37,7 +38,7 @@ DDD の5層、業務モデル、AOP は支援先アプリの内部設計で扱�
 | 文書 | 対象 |
 | --- | --- |
 | [workflow-orchestration.md](workflow-orchestration.md) | 対話・工程・承認役割、8 agent、15 skill、委任と再開 |
-| [specification-management.md](specification-management.md) | 成果物配置、Markdown/JSON、工程の版、更新・競合・復旧 |
+| [specification-management.md](specification-management.md) | 成果物配置、Markdown/JSON、工程の版、更新・競合・復旧、ADR |
 | [tool-integration.md](tool-integration.md) | 環境候補、Copilot 接続、補助機能、制約、導入 |
 | [development-verification.md](development-verification.md) | タスク、TDD、自動・手動証跡、独立レビュー、受入条件との対応 |
 
@@ -61,3 +62,5 @@ DDD の5層、業務モデル、AOP は支援先アプリの内部設計で扱�
 | NFR-COM-004 | 最小権限、既存変更の保護、制御できない操作の自動経路無効化。 |
 | NFR-COM-005 | 対応環境と機能確認をツール設計で定義し、未確認を対応済みと表示しない。 |
 | NFR-COM-006 | DES-COM-002、DES-COM-006。補助機能を更新整合性と必要な操作制限へ限定する。 |
+
+DES-COM-007 は REQ-SPEC-014（ADR）の実現方法である。機能の一覧と大分類は[要求定義書の README](../requirements/README.md)に定義し、本設計はそれらを agent・skill・補助機能へ対応付ける。

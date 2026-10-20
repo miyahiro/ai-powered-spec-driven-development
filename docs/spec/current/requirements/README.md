@@ -18,6 +18,21 @@ GitHub Copilot / VS Code 上で動作する、スペック駆動開発用の AI 
 | [development-verification.md](development-verification.md) | タスク計画、TDD、レビュー、検証と追跡 |
 | [tool-integration.md](tool-integration.md) | 既存ツール・MCP の連携、操作契約、権限制御 |
 
+## 機能の大分類
+
+各要求は大分類・機能に対応する。機能は各文書の「提供する機能」で定義し、要求は機能要件の表の「大分類」「機能」列で対応先を示す。
+
+| 大分類 | 名称・範囲 | 機能（定義先） |
+| --- | --- | --- |
+| CAT-FLOW 工程進行 | 入口、受付、担当への委任、承認、状況確認、中断・再開、質問 | FUN-COM-001、FUN-WF-001〜007（[common.md](common.md)、[workflow-orchestration.md](workflow-orchestration.md)） |
+| CAT-AUTHOR 仕様作成 | 壁打ち、要件定義、外部設計、内部設計、設計判断記録 | FUN-SPEC-001〜005（[specification-management.md](specification-management.md)） |
+| CAT-CANON 原本管理 | 変更影響分析、原本候補の更新、整合性レビュー、Scratchpad | FUN-SPEC-006〜009（[specification-management.md](specification-management.md)） |
+| CAT-DEV 開発検証 | タスク計画、TDD、検証と独立レビュー、仕様変更への対応 | FUN-DEV-001〜004（[development-verification.md](development-verification.md)） |
+| CAT-GUARD 操作制御 | 管理下の更新、許可範囲、記録、復旧、取り込み確認 | FUN-TOOL-001〜006（[tool-integration.md](tool-integration.md)） |
+| CAT-SETUP 導入配布 | 導入と更新 | FUN-COM-002（[common.md](common.md)） |
+
+機能の名称・入力・結果・停止条件は要求であり、agent・skill の名称や分割は設計で決める。
+
 ## 読む順序
 
 1. [common.md](common.md) で共通要求と記述ルールを確認する。
