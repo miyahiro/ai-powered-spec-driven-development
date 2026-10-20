@@ -1,20 +1,19 @@
 ---
 name: task-planning
-description: "承認済み内部設計と変更影響・整合性指摘から依存順タスク、編集範囲、完了条件、検証計画、追跡表を作りたいときに使う。"
+description: "承認済みの設計（軽量では要点）から、依存順のタスク、確認方法、完了の条件をタスク一覧（tasks.md）にまとめるときに使う。"
 user-invocable: true
 ---
 
-# タスク分解と検証計画
+# タスク分解
 
-入力: 現在版の承認済み設計、要件・受入条件、影響分析、整合性指摘、許可範囲。`tasks.json`・`traceability.json` の形式は [files.md](../../sdd/reference/files.md)。保存は [`document.update`](../../sdd/reference/operations/document.update.md)。
+入力: 承認済みの設計または要点（窓口から渡されたパスと ID）。
 
-1. 内部設計までの承認・入力版を確認する。新しい要求や必須の設計不足があれば差し戻し案を返す。
-2. `tasks.json` に `schemaVersion: 1` と `tasks` を置く。タスクは `TASK-0001` 形式。必須項目は id / title / type / requirementIds / designIds / acceptanceIds / dependsOn / inputs / assignee / editPaths / verification / completionCriteria / status / evidence / review。
-3. type は behavior / documentation / setup。新規は pending、証跡・レビューは空配列。循環・不明な依存を作らず、各タスクを局所的に実装・検証できる大きさにする。inputs は入力パスと正確な SHA-256。
-4. behavior は verification.method を tdd にする。その他は適切な文書・型・構築の確認。environment、必要な profile または手動 procedure、期待する結果、独立レビューを計画する。未確認環境を利用可能としない。
-5. `traceability.json` に schemaVersion と links を置く。各 link の requirementId / designIds / acceptanceIds / taskIds / testRefs / evidenceRefs を原本へ対応付ける。全受入条件に検証方法・環境・期待結果を割り当てる。
-6. 必須の整合性指摘を解消し、窓口へ成果物案または確認済み新版を返す。タスク分解に新しい人の承認工程を追加しない。タスク完了を担当が確定しない。
+1. 設計・要点の該当する節だけを読む。新しい要件や設計にないことが必要なら、タスクを足さずに窓口へ返す。
+2. `docs/spec/changes/<ID>/tasks.md` を作る（作るときだけ [テンプレート](templates/tasks.md) を読む）。各タスクに、対応する要件・受入条件の ID、確認方法、内容（完了の条件を含む）を書き、依存順に並べる。状態は `todo`。
+3. 振る舞いのタスクの確認方法は TDD（実行するテストのコマンド）、文書・設定のタスクはレビューや設定の検証にする。手動の確認が必要なら、その手順を書く。
+4. すべての受入条件が、どれかのタスクの確認でカバーされているか確かめる。
+5. `node .github/sdd/check.mjs <ID>` でタスク一覧の形式を確かめる。タスク分解には承認を置かない。
 
-停止: 要件・設計・検証判断不足、新要件が必要、版不一致、競合、必須指摘未解消。
+停止: 要件・設計が足りない、新しい要件が必要。
 
-出力: タスク・依存順・編集範囲、追跡表、受入条件ごとの検証計画、未検証環境、質問、入力版、新版または案、次操作。
+出力: タスク一覧、受入条件との対応の抜け、質問。

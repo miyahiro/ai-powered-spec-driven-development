@@ -16,12 +16,12 @@
 | 案件中 | `docs/spec/changes/<change-id>/decisions/` | 仮番号 `ADR-DRAFT-01` のような案件内連番 |
 | 昇格後 | `docs/spec/current/design/decisions/` | 通し番号 `ADR-0001`。ファイル名は `ADR-0001-<短い題>.md` |
 
-- 昇格は `canonical-spec-update` で行う。正式番号は既存の最大番号の次を採番し、仮番号との対応を変更記録へ残す。
+- 昇格は設計の承認の後に窓口が行う。正式番号は既存の最大番号の次を採番し、仮番号との対応を `status.md` の次の作業かメモに残す。
 - 昇格後の ADR は内容を書き換えない。変更は新しい ADR で置き換え（Superseded）る。誤記の訂正だけ原本の更新として扱う。
 
 ## 状態
 
-Proposed → Accepted / Rejected → Superseded。技術責任者の内部設計の工程承認で Accepted になる。承認前の Accepted 表記や、承認のない推測での Accepted を禁止する。
+Proposed → Accepted / Rejected → Superseded。設計の承認（承認のコミット）で Accepted になる。承認前の Accepted 表記や、承認のない推測での Accepted を禁止する。
 
 ## 記載項目
 
@@ -32,7 +32,7 @@ Proposed → Accepted / Rejected → Superseded。技術責任者の内部設計
 - 起票案件: <change-id>
 - 関連: <要件 ID、DES-<FEATURE>-001、関連 ADR>
 - 置換関係: <この ADR が置き換える ADR / この ADR を置き換えた ADR / なし>
-- 承認記録の参照: <工程承認の版・記録への参照。未承認なら「未承認」>
+- 承認: <設計の承認のコミット。未承認なら「未承認」>
 
 ## 背景・課題
 
