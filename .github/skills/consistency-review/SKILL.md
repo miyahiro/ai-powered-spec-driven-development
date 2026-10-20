@@ -6,7 +6,7 @@ user-invocable: true
 
 # 整合性レビュー
 
-入力: 案件、原本候補・変更記録・タスク・追跡表と版。ドラフト可、承認不要。[追跡形式](../../sdd/reference.md) を参照する。
+入力: 案件、原本候補・変更記録・タスク・追跡表と版。ドラフト可、承認不要。追跡表の形式は [files.md](../../sdd/reference/files.md)、参照検査は [`traceability.validate`](../../sdd/reference/operations/traceability.validate.md)。
 
 1. 指定された範囲と各版を読み、不足資料は未確認とする。レビューのために保存・実行を要求しない。
 2. 要求・非機能・受入条件・外部設計・内部設計・タスク・テスト・証跡の ID、参照、対象範囲を照合する。原本へ反映されていない変更を確認する。

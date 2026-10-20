@@ -327,3 +327,101 @@ test('agents cannot run the human setup command even after automatic recording i
     assert.equal(decision(evaluateTool({ tool_name: 'run_in_terminal', tool_input: { command } }, 'orchestrator', managed, root)), 'deny');
   }
 });
+
+async function permitDocs(root) {
+  const permission = { operations: ['document.update'], editPaths: ['docs'], readPaths: ['docs'], outputPaths: [], profiles: [], allowDelete: false, human: { ...actor, answer: '文書の編集を許可します' } };
+  assert.equal((await executeRequest(root, request(root, 'permission.record', { permission }, 'permission-docs'))).status, 'ok');
+}
+
+function editRequest(root, path, edits) {
+  const input = request(root, 'document.update', { updates: [{ path, edits }] });
+  input.expectedRevisions[path] = revision(root, path);
+  return input;
+}
+
+test('differential edits replace exactly one match in order and keep revision checks', async context => {
+  const root = fixture(context);
+  await register(root);
+  await permitDocs(root);
+  writeFileSync(join(root, 'docs/spec.md'), '# Spec\n\nalpha\nbeta\n');
+  const response = await executeRequest(root, editRequest(root, 'docs/spec.md', [{ oldText: 'alpha', newText: 'ALPHA $&' }, { oldText: 'ALPHA $&\nbeta', newText: 'gamma' }]));
+  assert.equal(response.status, 'ok', json(response));
+  assert.equal(readFileSync(join(root, 'docs/spec.md'), 'utf8'), '# Spec\n\ngamma\n');
+  assert.equal(response.revisions['docs/spec.md'], hash('# Spec\n\ngamma\n'));
+  writeFileSync(join(root, 'docs/spec.md'), 'x\nx\n');
+  assert.equal((await executeRequest(root, editRequest(root, 'docs/spec.md', [{ oldText: 'x', newText: 'y' }]))).error.code, 'INVALID_FORMAT');
+  assert.equal((await executeRequest(root, editRequest(root, 'docs/spec.md', [{ oldText: 'missing', newText: 'y' }]))).error.code, 'INVALID_FORMAT');
+  assert.equal(readFileSync(join(root, 'docs/spec.md'), 'utf8'), 'x\nx\n');
+  const stale = editRequest(root, 'docs/spec.md', [{ oldText: 'x\nx', newText: 'z' }]);
+  writeFileSync(join(root, 'docs/spec.md'), 'x\nx\nhuman edit\n');
+  assert.equal((await executeRequest(root, stale)).error.code, 'CONFLICT');
+  assert.equal(readFileSync(join(root, 'docs/spec.md'), 'utf8'), 'x\nx\nhuman edit\n');
+  const missing = editRequest(root, 'docs/new.md', [{ oldText: 'a', newText: 'b' }]);
+  assert.equal((await executeRequest(root, missing)).error.code, 'INVALID_FORMAT');
+  assert.throws(() => validateRequest({ ...editRequest(root, 'docs/spec.md', []), payload: { updates: [{ path: 'docs/spec.md', content: 'a', edits: [{ oldText: 'a', newText: 'b' }] }] } }), { code: 'INVALID_FORMAT' });
+});
+
+test('differential edits follow the same permission and protected-path rules', async context => {
+  const root = fixture(context);
+  await register(root);
+  writeFileSync(join(root, 'docs/spec.md'), 'alpha\n');
+  assert.equal((await executeRequest(root, editRequest(root, 'docs/spec.md', [{ oldText: 'alpha', newText: 'beta' }]))).error.code, 'PERMISSION_REQUIRED');
+  await permitDocs(root);
+  const state = editRequest(root, caseStatePath, [{ oldText: '"draft"', newText: '"completed"' }]);
+  assert.equal((await executeRequest(root, state)).error.code, 'OUT_OF_SCOPE');
+  assert.equal(readFileSync(join(root, 'docs/spec.md'), 'utf8'), 'alpha\n');
+});
+
+test('revision reads return only versions and reject protected paths', async context => {
+  const root = fixture(context);
+  writeFileSync(join(root, 'docs/a.md'), 'content');
+  const input = { schemaVersion: 1, operation: 'revision.read', role: 'reviewer', changeId: 'CHG-0001', branch: null, expectedRevisions: {}, payload: { paths: ['docs/a.md', 'docs/missing.md'] } };
+  assert.deepEqual((await executeRequest(root, input)).result, { 'docs/a.md': hash('content'), 'docs/missing.md': null });
+  for (const path of ['.github/sdd/profile.json', '.env', '../outside']) assert.equal((await executeRequest(root, { ...input, payload: { paths: [path] } })).status, 'error');
+});
+
+const statusSummaryPath = 'docs/scratchpad/CHG-0001/status.json';
+const liveStatus = async (root, role = 'orchestrator', payload = {}) => executeRequest(root, { schemaVersion: 1, operation: 'workflow.status', role, changeId: 'CHG-0001', branch: null, expectedRevisions: {}, payload });
+
+test('every state change writes a compact summary that status can read without the case files', async context => {
+  const root = fixture(context);
+  await register(root);
+  let summary = readJsonForTest(root, statusSummaryPath);
+  assert.equal(summary.basis, 'last-recorded-operation');
+  assert.equal(summary.phase, 'ideation');
+  assert.equal(summary.lastOperation, 'register-1');
+  assert.ok(Date.parse(summary.generatedAt));
+  assert.equal((await executeRequest(root, request(root, 'question.open', { text: '保存期間', options: [], recommendation: '', impact: ['保持'], duePhase: 'ideation' }, 'question-1'))).status, 'ok');
+  summary = readJsonForTest(root, statusSummaryPath);
+  assert.deepEqual(summary.questions.due.map(question => question.id), ['Q-0001']);
+  assert.equal(summary.status, 'blocked');
+  assert.match(summary.nextAction, /Q-0001/);
+  const live = await liveStatus(root, 'reviewer');
+  assert.equal(live.status, 'ok', json(live));
+  assert.equal(live.result.basis, 'live');
+  assert.deepEqual(live.result.questions.due, summary.questions.due);
+  assert.equal(live.result.records, undefined);
+  assert.deepEqual(live.result.permissions, []);
+  const snapshot = request(root, 'scratchpad.update', { updates: [{ path: statusSummaryPath, content: '{}' }] });
+  snapshot.expectedRevisions[statusSummaryPath] = revision(root, statusSummaryPath);
+  assert.equal((await executeRequest(root, snapshot)).error.code, 'OUT_OF_SCOPE');
+});
+
+test('live status detects artifacts changed after approval and lists recent records on request', async context => {
+  const root = fixture(context);
+  await register(root);
+  mkdirSync(join(root, 'docs/spec/changes/CHG-0001'), { recursive: true });
+  writeFileSync(join(root, 'docs/spec/changes/CHG-0001/ideation.md'), 'approved idea\n');
+  const approvalRequest = await executeRequest(root, request(root, 'approval.request', { roots: ['docs/spec/changes/CHG-0001/ideation.md'] }, 'approval-request-1'));
+  assert.equal(readJsonForTest(root, statusSummaryPath).awaitingApproval.requiredActor, 'owner');
+  await executeRequest(root, request(root, 'approval.record', { phase: 'ideation', revision: approvalRequest.result.manifest.revision, judgment: 'approved', human: actor }, 'approval-1'));
+  assert.deepEqual((await liveStatus(root)).result.staleApprovals, []);
+  writeFileSync(join(root, 'docs/spec/changes/CHG-0001/ideation.md'), 'edited after approval\n');
+  const live = await liveStatus(root, 'orchestrator', { recordLimit: 5 });
+  assert.deepEqual(live.result.staleApprovals, ['ideation']);
+  assert.match(live.result.nextAction, /ideation/);
+  assert.deepEqual(readJsonForTest(root, statusSummaryPath).staleApprovals, [], 'the snapshot reflects only the last recorded operation');
+  assert.equal(live.result.records[0].type, 'approval');
+  assert.equal(live.result.records[0].actor, 'owner');
+  assert.equal((await liveStatus(root, 'orchestrator', { recordLimit: 51 })).error.code, 'INVALID_FORMAT');
+});

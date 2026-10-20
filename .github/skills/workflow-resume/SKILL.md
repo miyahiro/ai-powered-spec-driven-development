@@ -6,13 +6,13 @@ user-invocable: true
 
 # 再開
 
-入力: 案件 ID、保存状態と関連成果物、現在の作業環境。[復旧契約](../../sdd/reference.md) を読む。
+入力: 案件 ID、保存状態と関連成果物、現在の作業環境。使う操作は [`workflow.status`](../../sdd/reference/operations/workflow.status.md)、[`scratchpad.read`](../../sdd/reference/operations/scratchpad.read.md)、[`recover`](../../sdd/reference/operations/recover.md)、[`workflow.transition`](../../sdd/reference/operations/workflow.transition.md)。
 
-1. `state.json`、`operations.json`、pending、引き継ぎ、タスク・証跡を読む。会話の記憶より実ファイルを優先する。
-2. 現在ブランチと登録基点、成果物と入力版、工程承認、編集・検証許可、必須質問を照合する。将来質問だけなら現在作業を止めない。
+1. `workflow.status` を1回呼び、工程・状態、ブランチの一致、承認後に変わった工程、途中の更新、許可の範囲、必須の質問、未検証のタスクを確かめる。個別のファイルは、要約で不一致が見つかった項目だけ読む。ランナーを実行できない間は要約ファイル `status.json` を読み、最後の記録の時点の状況であると示す。会話の記憶より保存された記録を優先する。
+2. 要約に不一致（ブランチの違い、`staleApprovals`、`pendingUpdates`、期限の来た質問）がないかを照合する。将来質問だけなら現在作業を止めない。
 3. pending があれば窓口が `recover` を `apply: false` で調べ、適用済み・残り・手動変更を確認する。復旧を明示許可した人の回答がなければ適用しない。残留ロックを時間だけで削除しない。
 4. 登録操作を再送する場合は同じ操作 ID と同じ入力を使う。入力を変更するなら新 ID を使い、旧操作の結果を先に照合する。
-5. 記録の方式を確かめて示す。不一致がなければ、人の再開の依頼を回答として窓口が [対話による記録](../../sdd/reference.md#対話による記録と遷移) に従い `workflow.transition` の `resume` を記録する。必須質問を解消して再作業する場合は `activate` を使う。窓口が引き継ぎを別操作で更新する。
+5. 記録の方式を確かめて示す。不一致がなければ、人の再開の依頼を回答として窓口が [対話による記録](../../sdd/reference/dialogue.md) に従い `workflow.transition` の `resume` を記録する。必須質問を解消して再作業する場合は `activate` を使う。窓口が引き継ぎを別操作で更新する。
 
 停止: ブランチ・版・許可・必須質問の不一致、部分更新、古い検証証跡。編集競合は人の変更を残し、差分の統合を質問する。
 

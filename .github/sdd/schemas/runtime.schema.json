@@ -22,7 +22,7 @@
       "required": ["schemaVersion", "operation", "role", "changeId", "branch", "expectedRevisions", "payload"],
       "properties": {
         "schemaVersion": { "const": 1 },
-        "operation": { "enum": ["change.register", "scratchpad.read", "scratchpad.update", "question.open", "question.record_answer", "decision.record", "approval.request", "approval.record", "permission.record", "workflow.transition", "traceability.validate", "document.update", "verification.run", "verification.record", "git.inspect", "integration.record", "recover", "doctor"] },
+        "operation": { "enum": ["change.register", "scratchpad.read", "revision.read", "workflow.status", "scratchpad.update", "question.open", "question.record_answer", "decision.record", "approval.request", "approval.record", "permission.record", "workflow.transition", "traceability.validate", "document.update", "verification.run", "verification.record", "git.inspect", "integration.record", "recover", "doctor"] },
         "role": { "$ref": "#/$defs/role" }, "changeId": { "type": "string", "pattern": "^CHG-[0-9]{4,}$" },
         "branch": { "type": ["string", "null"] }, "expectedRevisions": { "$ref": "#/$defs/revisions" }, "payload": { "type": "object" }, "operationId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,100}$" }
       }

@@ -10,7 +10,7 @@ GitHub Copilot / VS Code Local で、アイデアから実装・検証までを�
 | --- | --- |
 | 導入・管理する人 | 本書 |
 | 開発を進める利用者 | [ユーザーガイド](user_guide.md) |
-| 手動利用を選ぶ人、コマンドや JSON の仕様を知りたい人 | [コマンドと操作のリファレンス](reference.md) |
+| 手動利用を選ぶ人、コマンドや JSON の仕様を知りたい人 | [コマンドと操作のリファレンス](reference/README.md) |
 
 ## 目次
 
@@ -81,7 +81,7 @@ workspace ごとに1回、次の確認を行います。
 - `profile.json`: `mode: managed`、`hostChecks` の2項目を true にし、確認日時とメモを記録します。
 - 窓口と6工程担当の `tools`: `execute` を追加します。reviewer は read / search のままです。edit / web は追加しません。
 
-`hostChecks` は人の確認結果の記録で、ランナーがホストの動作を証明した値ではありません。確認できない場合は確認待ちのまま運用します。その場合も、手動利用を選んだ人は記録を進められます（[記録の方式](reference.md#記録の方式)）。
+`hostChecks` は人の確認結果の記録で、ランナーがホストの動作を証明した値ではありません。確認できない場合は確認待ちのまま運用します。その場合も、手動利用を選んだ人は記録を進められます（[記録の方式](reference/dialogue.md#記録の方式)）。
 
 ## 3. 利用を始める
 
@@ -101,7 +101,7 @@ node .github/sdd/bin/setup.mjs default automatic   # 既定を自動記録に戻
 | VS Code・Copilot・agent・hook・`profile.json` を更新したとき | `setup.mjs disable` で確認待ちに戻し、変わった機能を確かめてから再び `enable` する |
 | この仕組みを新しい版に更新するとき | 導入時と同じく差分を確かめてからコピーし、`npm ci`・`npm test`・`doctor` を実行する。agent を置き換えた場合は再び `enable` する |
 | 自動検証（隔離実行）を使いたいとき | [隔離検証プロファイルを追加する](#隔離検証プロファイルを追加する) |
-| 記録の状況を確かめたいとき | `setup.mjs status`、`sddctl.mjs doctor`。案件の状態は利用者が窓口に「状況を教えて」と頼むか、[`scratchpad.read`](reference.md#scratchpadread) で読む |
+| 記録の状況を確かめたいとき | `setup.mjs status`、`sddctl.mjs doctor`。案件の状態は利用者が窓口に「状況を教えて」と頼むか、[`scratchpad.read`](reference/operations/scratchpad.read.md) で読む |
 
 `.github/` 配下（agent・hook・instructions・ランナー）の変更は、人が差分を確かめて行います。エージェントは制御設定を変更できません。
 
@@ -131,13 +131,13 @@ node .github/sdd/bin/setup.mjs default automatic   # 既定を自動記録に戻
 
 | 症状 | 対処 |
 | --- | --- |
-| `INCOMPLETE_UPDATE` が返る（`pending/` が残っている） | [`recover`](reference.md#recover) を `apply: false` で調べる。残りのファイルが期待版か適用予定の版と一致する場合だけ、人が明示的に許可して `apply: true` を実行する。人の別の変更が見つかったら消さず、差分の統合と復旧の判断を行う |
+| `INCOMPLETE_UPDATE` が返る（`pending/` が残っている） | [`recover`](reference/operations/recover.md) を `apply: false` で調べる。残りのファイルが期待版か適用予定の版と一致する場合だけ、人が明示的に許可して `apply: true` を実行する。人の別の変更が見つかったら消さず、差分の統合と復旧の判断を行う |
 | `CONFLICT` で「An update lock is present」 | 実行中の操作がないことを確かめてから `rmdir .github/sdd/.lock` で外す。ランナーは時刻だけでロックを外さない |
 | hook が失敗する・未知のツールを拒否する | ツールの対応と入力の形、ホストの動作を確かめる。Allow All や自由な terminal で回避しない。必要なら `setup.mjs disable` |
 | `ENVIRONMENT_UNSUPPORTED`（隔離検証） | 手動検証に切り替える。隔離なしで再実行しない |
 | 利用者に「確認待ち」と表示される | [自動記録を有効にする](#2-自動記録を有効にする導入時に1回) を行う |
 
-エラーの一覧と対処は [リファレンスのエラーと対処](reference.md#エラーと対処) にあります。復旧情報（`pending/` のジャーナル）の内容は、秘密でない適用予定の内容です。完了後は内容を除き、版とパスの履歴だけを残します。
+エラーの一覧と対処は [リファレンスのエラーと対処](reference/request.md#エラーと対処) にあります。復旧情報（`pending/` のジャーナル）の内容は、秘密でない適用予定の内容です。完了後は内容を除き、版とパスの履歴だけを残します。
 
 ## 6. 仕組みの説明
 
@@ -159,7 +159,7 @@ node .github/sdd/bin/setup.mjs default automatic   # 既定を自動記録に戻
 
 ### 記録の方式と対話の手順
 
-記録の方式（自動記録・手動利用・確認待ち）の判定と、窓口が対話で判断を得て記録する手順は、[リファレンスの対話による記録と遷移](reference.md#対話による記録と遷移) にあります。
+記録の方式（自動記録・手動利用・確認待ち）の判定と、窓口が対話で判断を得て記録する手順は、[リファレンスの対話による記録と遷移](reference/dialogue.md) にあります。
 
 ### 工程と承認
 
@@ -200,7 +200,7 @@ node .github/sdd/bin/setup.mjs default automatic   # 既定を自動記録に戻
 
 ### 安全上の前提と制約
 
-- ランナーは workspace 相対のパスだけに書き込みます。制御設定（`.git/`、`.github/`、`.vscode/`）・秘密ファイル・symlink への書き込みを拒否します。保存先と版の詳細は [リファレンスのファイルと版](reference.md#ファイルと版) にあります。
+- ランナーは workspace 相対のパスだけに書き込みます。制御設定（`.git/`、`.github/`、`.vscode/`）・秘密ファイル・symlink への書き込みを拒否します。保存先と版の詳細は [リファレンスのファイルと版](reference/files.md) にあります。
 - Git の初期化・コミット・ブランチ作成・push・PR・マージ・本番反映は自動で行いません。ランナーは Git を読み取るだけです。
 - agent ごとの hook だけでホスト全体を確実に止められるとは主張しません。人の手動操作、別の通常の agent、OS 上の別プロセスは制御の対象外です。
 - 本人認証・電子署名・改ざん防止の基盤は実装していません。人の回答を運用上記録する仕組みです。

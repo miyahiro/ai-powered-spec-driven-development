@@ -72,15 +72,18 @@ test('customization documentation links and anchors resolve without source-works
   check(resolve(root, 'copilot-instructions.md'));
   check(resolve(root, 'sdd/README.md'));
   check(resolve(root, 'sdd/user_guide.md'));
-  check(resolve(root, 'sdd/reference.md'));
+  for (const name of readdirSync(resolve(root, 'sdd/reference'))) if (name.endsWith('.md')) check(resolve(root, 'sdd/reference', name));
+  for (const name of readdirSync(resolve(root, 'sdd/reference/operations'))) check(resolve(root, 'sdd/reference/operations', name));
   check(resolve(root, '../README.md'));
 });
 
-test('the reference describes every runner operation', () => {
+test('the reference has one file per runner operation and an index row for each', () => {
   const schema = JSON.parse(readFileSync(resolve(root, 'sdd/schemas/runtime.schema.json'), 'utf8'));
-  const text = readFileSync(resolve(root, 'sdd/reference.md'), 'utf8');
-  for (const operation of schema.$defs.request.properties.operation.enum) {
-    assert.ok(text.includes(`\n### ${operation}\n`), `missing section: ${operation}`);
-    assert.ok(text.includes(`[\`${operation}\`](#${slug(operation)})`), `missing quick reference row: ${operation}`);
+  const operations = schema.$defs.request.properties.operation.enum;
+  const index = readFileSync(resolve(root, 'sdd/reference/README.md'), 'utf8');
+  assert.deepEqual(readdirSync(resolve(root, 'sdd/reference/operations')).sort(), operations.map(operation => `${operation}.md`).sort());
+  for (const operation of operations) {
+    assert.ok(readFileSync(resolve(root, 'sdd/reference/operations', `${operation}.md`), 'utf8').startsWith(`# ${operation}\n`), `title: ${operation}`);
+    assert.ok(index.includes(`[\`${operation}\`](operations/${operation}.md)`), `missing index row: ${operation}`);
   }
 });

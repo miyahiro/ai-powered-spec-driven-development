@@ -31,7 +31,10 @@
   sdd/
     README.md                          # 導入・管理ガイド（導入 → 有効化 → 運用 → 障害対応）
     user_guide.md                      # 利用者向けガイド（案件の開始 → 工程 → 完了）
-    reference.md                       # コマンドと操作のリファレンス（全操作の入力・結果・エラー）
+    reference/                         # コマンドと操作のリファレンス
+      README.md                        #   目次・どのファイルを読むか・操作の早見表
+      commands.md, request.md, dialogue.md, manual-checklist.md, files.md
+      operations/<操作名>.md            #   操作ごとの入力・例・前提・結果・確認点
     profile.json                       # 環境・ツール対応表・許可プロファイル
     package.json
     package-lock.json
@@ -52,7 +55,9 @@
 | 操作 | 入力・結果 | 副作用・前提 |
 | --- | --- | --- |
 | `change.register` | 変更 ID・種別・役割・Git 情報から登録結果 | 案件状態を作成。Git 未準備は `null`。Git ブランチは作らない |
-| `scratchpad.read` | 案件・相対パスから内容と版 | 読み取りだけ。status とレビューでは既存の読み取りツールも利用可 |
+| `scratchpad.read` | 案件・相対パスから内容と版 | 読み取りだけ。レビューでは既存の読み取りツールも利用可 |
+| `workflow.status` | 案件と任意の `recordLimit`（0〜50）から状況の要約 | 読み取りだけ。全役割が使える。工程・状態、期限の来た質問、承認待ちと承認する人、最新の承認ごとに今の manifest を計算した承認の古さ（`staleApprovals`）、途中の更新の件数、タスクの件数と未検証の ID（最大20）、許可の範囲、取り込みの状況、作業中のブランチの一致、記録の方式、次に必要なこと、依頼時の記録の一覧を返す（`basis: live`） |
+| `revision.read` | 相対パスの一覧（1〜100件）から各ファイルの版（未作成は `null`） | 読み取りだけ。内容は返さない。全役割が使える。保護対象・workspace 外は `OUT_OF_SCOPE` |
 | `scratchpad.update` | 対象・期待版・差分から変更内容と新版 | 許可範囲、ブランチ、更新ロックを確認。通常の差分は操作 ID 不要 |
 | `question.open` | 質問・期限・影響・操作 ID から質問 ID | 永続的な二重登録防止 |
 | `question.record_answer` | 質問 ID・人の回答・出所・操作 ID | 回答を保存。承認・正式仕様の反映を自動完了しない |
@@ -61,7 +66,7 @@
 | `workflow.transition` | 現在・次工程、期待版、操作 ID | 必須質問・成果物・工程承認・許可を検査して移行 |
 | `traceability.validate` | 対象集合・追跡表 | 参照切れ等を返す読み取り検査。意味の適合は人・レビュー担当が判断 |
 
-追加の内部操作は `document.update`、`approval.record`、`permission.record`、`verification.run`、`verification.record`、`git.inspect`、`integration.record`、`recover`、`doctor` とする。`document.update` は `{path, content}` の一覧を受け、`content: null` は許可済みの削除を表す。`scratchpad.update` は同じ形式で当該案件の Scratchpad だけを対象にし、共有 `handoff`（次作業・理由）の更新は窓口だけが行う。文書・コード編集も `document.update` へ通し、組み込みの編集ツールによる版検査の迂回を許可しない。`approval.record` と `permission.record` は人の回答出所を必須とし、回答記録の真正性は運用上の合意として扱う。
+追加の内部操作は `document.update`、`approval.record`、`permission.record`、`verification.run`、`verification.record`、`git.inspect`、`integration.record`、`recover`、`doctor` とする。`document.update` の `updates` の各要素は、全文 `{path, content}` か差分 `{path, edits}` のどちらかとする。`content: null` は許可済みの削除を表す。差分の `edits` は `[{oldText, newText}]`（1〜100件）で、既存ファイルだけに使える。ランナーは期待版を照合した後、現在の内容に `edits` を上から順に適用し、各 `oldText` がその時点の内容にちょうど1か所だけ存在することを確かめる（0か所・2か所以上は `INVALID_FORMAT` で何も書き込まない）。適用して得た新内容は全文の更新と同じ検査・許可・復旧情報・置換の手順に通す。AI は既存の文書・コードの部分的な変更に差分を使い、全文は新規作成と全面改訂に限る。`scratchpad.update` は同じ形式で当該案件の Scratchpad だけを対象にし、共有 `handoff`（次作業・理由）の更新は窓口だけが行う。文書・コード編集も `document.update` へ通し、組み込みの編集ツールによる版検査の迂回を許可しない。`approval.record` と `permission.record` は人の回答出所を必須とし、回答記録の真正性は運用上の合意として扱う。
 
 request の共通項目は `schemaVersion`（1）, `operation`, `role`, `changeId`, `branch`, `expectedRevisions`, `payload`、登録・承認・許可・移行系には `operationId` とする。全ての変更操作は `state.json` の現在版を `expectedRevisions` に含め、対象文書の現在版（未作成は `null`）も加える。Git 準備前の受付・壁打ちは `branch: null` を認めるが、正式管理中のブランチ不一致は拒否する。操作ごとに JSON Schema と許可された担当を定義し、任意のファイル書き込み・シェル実行を payload の文字列から展開しない。
 
@@ -127,7 +132,7 @@ Git の自動操作は `git.inspect` の現在ブランチ・HEAD・変更状況
 4. `doctor` は Node・OS・harness・mode・実行環境の対応（`localRuntime`: `available` / `unsupported`）、自動操作の状態（`automaticOperations`: `manual-only` / `human-attested-not-independently-verified`）、記録の方式（`recording`: `automatic` / `manual` / `setup-required`、`recordingDefault`、`hostChecked`、`executeEnabled`）、隔離の状態（`sandbox`: `unsupported` / `manual-only` / `unconfirmed`）、固定の `commandPrefix`、ホスト側で確認が必要な項目、検証対象外（並行担当・MCP）を返す。`unconfirmed` は bubblewrap が起動できるだけで、隔離動作の確認済みを意味しない。
 5. 3 の確認と [ランナー利用方法](../../../../.github/sdd/README.md) の有効化前の確認を終えたら、人が `node .github/sdd/bin/setup.mjs enable --confirm-host-checks` を1回実行し、対話による自動記録（DES-TOOL-007）を有効にする。確認できない場合は確認待ちのままとし、手動利用を選んで進められる。更新時も差分確認と必要な機能確認だけを行い、ホスト・設定が変わったら `disable` して再確認する。
 
-文書は読む人ごとに分ける。導入・管理する人の手順は `.github/sdd/README.md` に導入から運用・障害対応までの順で、利用者の手順は `.github/sdd/user_guide.md` に案件の開始から完了までの順でまとめる。コマンド・request・response・エラーの説明は `.github/sdd/reference.md` にまとめ、形式の正本である JSON Schema と矛盾させない。通常の利用者は対話だけで進められるようにし、リファレンスは手動利用と管理の作業でだけ読む。`npm test` は、リファレンスがすべての操作を含むことと、文書内リンクの参照先が実在することを検査する。エージェントもリファレンスを読んで request を組み立てるため、`readRoots` に含める。導入先の既存 instructions は無条件に置換せず、共通ルールの衝突だけを確認する。自動アップデーター、詳細な配布方式比較、複数 OS 用インストーラーは作らない。補助機能を利用できない場合は会話・状況確認・人への案内を継続できるが、利用不可の自動操作を成功したとは表示しない。
+文書は読む人ごとに分ける。導入・管理する人の手順は `.github/sdd/README.md` に導入から運用・障害対応までの順で、利用者の手順は `.github/sdd/user_guide.md` に案件の開始から完了までの順でまとめる。コマンド・request・response・エラーの説明は `.github/sdd/reference/` にまとめ、トピック別のファイルと操作ごとのファイル（`operations/<操作名>.md`）に分ける。形式の正本である JSON Schema と矛盾させない。エージェントはリファレンス全体を読まず、使う操作のファイルだけを使う直前に読む（DES-COM-009）。通常の利用者は対話だけで進められるようにし、リファレンスは手動利用と管理の作業でだけ読む。`npm test` は、Schema の全操作に操作ごとのファイルと早見表の行があることと、文書内リンクの参照先が実在することを検査する。エージェントもリファレンスを読んで request を組み立てるため、`readRoots` に含める。導入先の既存 instructions は無条件に置換せず、共通ルールの衝突だけを確認する。自動アップデーター、詳細な配布方式比較、複数 OS 用インストーラーは作らない。補助機能を利用できない場合は会話・状況確認・人への案内を継続できるが、利用不可の自動操作を成功したとは表示しない。
 
 ## DES-TOOL-007 対話による自動実行と手動利用
 
@@ -170,9 +175,11 @@ DES-WF-005 の自動記録は、既存の `sddctl` と DES-TOOL-003 のガード
 | REQ-TOOL-006 | DES-TOOL-002。工程承認・回答と出所の記録。 |
 | REQ-TOOL-007 | DES-TOOL-005。中断照合と MCP 未導入での復旧。 |
 | REQ-TOOL-008 | DES-TOOL-005。原本・実装一体の取り込み確認。 |
+| REQ-TOOL-010 | DES-TOOL-002、DES-SPEC-005。差分 `edits` の適用と、全文と同じ検査・復旧。 |
+| REQ-TOOL-011 | DES-TOOL-002。`revision.read`。 |
 | REQ-TOOL-009 | DES-TOOL-003、DES-TOOL-007。管理下の経路だけの自動実行、導入時1回の人による確認と `setup.mjs` での有効化、確認前の停止。 |
 | NFR-TOOL-001 | DES-TOOL-003、DES-TOOL-004、DES-TOOL-007。ホスト制限と未対応経路の無効化、手動利用への切り替え。 |
-| NFR-COM-007 | DES-TOOL-006。読む人ごとの3文書と、リファレンスの網羅性の検査。 |
+| NFR-COM-007 | DES-TOOL-006。読む人ごとの3文書、操作ごとに分けたリファレンス、網羅性の検査。 |
 | NFR-TOOL-002 | DES-TOOL-005。結果・秘密のマスク・ファイルからの復元。 |
 
 ## 根拠と実装前の確認

@@ -9,7 +9,7 @@ GitHub Copilot / VS Code Local 向けの8エージェント・15スキルと、�
 | --- | --- |
 | 導入・管理する人 | [導入・管理ガイド](.github/sdd/README.md) |
 | 開発を進める利用者 | [ユーザーガイド](.github/sdd/user_guide.md) |
-| 手動利用を選ぶ人、コマンド・JSON の仕様を知りたい人 | [コマンドと操作のリファレンス](.github/sdd/reference.md) |
+| 手動利用を選ぶ人、コマンド・JSON の仕様を知りたい人 | [コマンドと操作のリファレンス](.github/sdd/reference/README.md) |
 
 通常の窓口は `sdd-orchestrator`、状況確認は `/workflow-status` を使います。
 

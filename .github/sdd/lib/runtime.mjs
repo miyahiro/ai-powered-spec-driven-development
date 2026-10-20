@@ -7,11 +7,12 @@ import { runVerification, sandboxStatus } from './verification.mjs';
 import { recordingStatus } from './setup.mjs';
 
 const rolePhases = { ideation: 'ideation', requirements: 'requirements', 'external-design': 'external-design', 'internal-design': 'internal-design', 'task-planner': 'task-planning', implementer: 'development' };
-const readOperations = new Set(['scratchpad.read', 'traceability.validate', 'git.inspect', 'doctor']);
+const readOperations = new Set(['scratchpad.read', 'revision.read', 'workflow.status', 'traceability.validate', 'git.inspect', 'doctor']);
 const coordinatorOperations = new Set(['change.register', 'question.open', 'question.record_answer', 'decision.record', 'approval.request', 'approval.record', 'permission.record', 'workflow.transition', 'integration.record', 'recover']);
 const identifiedOperations = new Set([...coordinatorOperations].filter(operation => operation !== 'recover'));
 const statePath = changeId => `docs/scratchpad/${changeId}/state.json`;
 const operationsPath = changeId => `docs/scratchpad/${changeId}/operations.json`;
+const summaryPath = changeId => `docs/scratchpad/${changeId}/status.json`;
 const changesPath = changeId => `docs/spec/changes/${changeId}`;
 const within = (path, prefix) => path === prefix.replace(/\/$/, '') || path.startsWith(`${prefix.replace(/\/$/, '')}/`);
 
@@ -146,6 +147,63 @@ function traceability(root, state, payload) {
   return { valid: findings.length === 0, findings, semanticReviewRequired: true };
 }
 
+function currentRevision(root, saved) {
+  try { return manifest(root, saved.roots, saved.inputs).revision; } catch { return null; }
+}
+
+function statusRecords(state, limit) {
+  const records = [];
+  for (const question of state.questions) if (question.answer) records.push({ type: 'answer', id: question.id, text: question.text, ...question.answer });
+  for (const approval of state.approvals) records.push({ type: 'approval', phase: approval.phase, judgment: approval.judgment, revision: approval.manifest.revision, ...approval.human });
+  for (const permission of state.permissions) records.push({ type: 'permission', operations: permission.operations, editPaths: permission.editPaths, allowDelete: permission.allowDelete, ...permission.human });
+  records.sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp));
+  return records.slice(0, limit);
+}
+
+export function summarize(root, state, { live = false, recordLimit = 0 } = {}) {
+  const due = dueQuestions(state, state.phase);
+  const approvals = [];
+  for (const phase of phases) {
+    const latest = state.approvals.filter(approval => approval.phase === phase && approval.judgment === 'approved').at(-1);
+    if (!latest) continue;
+    const current = currentRevision(root, latest.manifest);
+    approvals.push({ phase, revision: latest.manifest.revision, current: current === latest.manifest.revision, approvedBy: latest.human.actor, timestamp: latest.human.timestamp });
+  }
+  const saved = state.phaseManifests[state.phase];
+  const awaiting = state.status === 'awaiting-approval' && saved ? { phase: state.phase, revision: saved.revision, current: currentRevision(root, saved) === saved.revision, requiredActor: phases.indexOf(state.phase) <= 2 ? state.actors.customer : state.actors.technicalLead, roots: saved.roots, fileCount: Object.keys(saved.files).length } : null;
+  let tasks = null;
+  const tasksPath = `${changesPath(state.changeId)}/tasks.json`;
+  if (existsSync(safePath(root, tasksPath))) {
+    try {
+      const list = loadTasks(root, state).tasks;
+      const counts = {};
+      for (const task of list) counts[task.status] = (counts[task.status] ?? 0) + 1;
+      tasks = { counts, unverified: list.filter(task => !['verified', 'obsolete'].includes(task.status)).map(task => task.id).slice(0, 20) };
+    } catch { tasks = { invalid: true }; }
+  }
+  const pending = pendingJournals(root, state.changeId).length;
+  const stale = approvals.filter(approval => !approval.current).map(approval => approval.phase);
+  const nextAction = pending ? 'recover の調査（apply: false）' : due.length ? `質問 ${due.map(question => question.id).join('、')} への回答` : awaiting ? `${awaiting.requiredActor} による ${awaiting.phase} の工程承認` : stale.length ? `${stale.join('、')} の再承認` : state.handoff.nextAction;
+  const summary = {
+    schemaVersion: 1, changeId: state.changeId, kind: state.kind, purpose: state.purpose, phase: state.phase, status: state.status,
+    ...(state.resumeStatus ? { resumeStatus: state.resumeStatus } : {}),
+    git: { branch: state.git.branch, baseCommit: state.git.baseCommit },
+    questions: { due: due.map(question => ({ id: question.id, text: question.text, duePhase: question.duePhase, status: question.status })), later: state.questions.filter(question => question.status !== 'resolved').length - due.length },
+    awaitingApproval: awaiting, approvals, staleApprovals: stale, pendingUpdates: pending, tasks,
+    permissions: state.permissions.map(permission => ({ operations: permission.operations, editPaths: permission.editPaths, allowDelete: permission.allowDelete, ...(permission.phase ? { phase: permission.phase, roles: permission.roles ?? [] } : {}) })),
+    integration: { developmentApproved: state.integration.developmentApproved, merged: state.integration.merge !== null, production: state.integration.production !== null },
+    lastOperation: state.handoff.lastOperation, nextAction, recording: recordingStatus(root).recording,
+    basis: live ? 'live' : 'last-recorded-operation'
+  };
+  if (live) {
+    const actual = inspectGit(root);
+    summary.git.currentBranch = actual.branch;
+    summary.git.branchMatches = state.git.branch === null || actual.branch === state.git.branch;
+  } else summary.generatedAt = new Date().toISOString();
+  if (recordLimit > 0) summary.records = statusRecords(state, recordLimit);
+  return summary;
+}
+
 function readdirIfDirectory(target) {
   try { readdirSync(target); return true; } catch { return false; }
 }
@@ -154,12 +212,27 @@ function permit(state, operation, path = null, deletion = false, profile = null,
   requireCondition(state.permissions.some(permission => permission.operations.includes(operation) && (role === 'orchestrator' || permission.phase === state.phase && permission.roles?.includes(role)) && (!path || permission.editPaths.some(prefix => within(path, prefix))) && (!deletion || permission.allowDelete) && (!profile || permission.profiles.includes(profile))), 'PERMISSION_REQUIRED', `Permission is required for ${operation}${path ? `: ${path}` : ''}.`);
 }
 
+function applyEdits(root, request, update) {
+  if (!Object.hasOwn(update, 'edits')) return update;
+  shape(update, ['path', 'edits'], ['path', 'edits']);
+  const target = safePath(root, update.path);
+  requireCondition(existsSync(target), 'INVALID_FORMAT', `Edits need an existing file: ${update.path}`);
+  requireCondition(request.expectedRevisions[update.path] === revision(root, update.path), 'CONFLICT', `The file changed: ${update.path}`);
+  let content = readFileSync(target, 'utf8');
+  for (const [index, edit] of update.edits.entries()) {
+    const count = content.split(edit.oldText).length - 1;
+    requireCondition(count === 1, 'INVALID_FORMAT', `Edit ${index + 1} must match exactly once in ${update.path}; it matched ${count} times.`);
+    content = content.replace(edit.oldText, () => edit.newText);
+  }
+  return { path: update.path, content };
+}
+
 function checkDocument(root, state, request, update) {
   shape(update, ['path', 'content'], ['path', 'content']);
   safePath(root, update.path);
   requireCondition(!['paused', 'awaiting-approval'].includes(state.status), 'OUT_OF_SCOPE', 'Return to active work before changing phase artifacts.');
   requireCondition(update.content === null || typeof update.content === 'string', 'INVALID_FORMAT', 'Document content must be text or null.');
-  requireCondition(!/\/state\.json$|\/operations\.json$|\/pending\//.test(update.path), 'OUT_OF_SCOPE', 'Managed state cannot be edited as a document.');
+  requireCondition(!/\/state\.json$|\/operations\.json$|\/pending\/|^docs\/scratchpad\/[^/]+\/status\.json$/.test(update.path), 'OUT_OF_SCOPE', 'Managed state cannot be edited as a document.');
   if (update.path.startsWith('docs/spec/changes/')) requireCondition(within(update.path, changesPath(state.changeId)), 'OUT_OF_SCOPE', 'Other change records are immutable.');
   if (update.path.startsWith('docs/scratchpad/')) requireCondition(within(update.path, `docs/scratchpad/${state.changeId}`), 'OUT_OF_SCOPE', 'Other Scratchpads are out of scope.');
   if (request.role === 'orchestrator') requireCondition(update.path.startsWith('docs/'), 'OUT_OF_SCOPE', 'The orchestrator does not implement application code.');
@@ -219,6 +292,14 @@ export async function executeRequest(workspace, request) {
       const target = request.payload.path ?? path;
       requireCondition(within(target, `docs/scratchpad/${request.changeId}`), 'OUT_OF_SCOPE', 'Scratchpad reads are case-scoped.');
       return { status: 'ok', result: request.payload.path ? readFileSync(safePath(root, target), 'utf8') : state, revisions: { [target]: revision(root, target) } };
+    }
+    if (request.operation === 'revision.read') {
+      shape(request.payload, ['paths'], ['paths']);
+      return { status: 'ok', result: Object.fromEntries(request.payload.paths.map(target => [target, revision(root, target)])) };
+    }
+    if (request.operation === 'workflow.status') {
+      shape(request.payload, ['recordLimit']);
+      return { status: 'ok', result: summarize(root, loadState(), { live: true, recordLimit: request.payload.recordLimit ?? 0 }) };
     }
     if (request.operation === 'traceability.validate') return { status: 'ok', result: traceability(root, loadState(), request.payload) };
     if (request.operation === 'recover') {
@@ -284,9 +365,10 @@ export async function executeRequest(workspace, request) {
             shape(payload.handoff, ['nextAction', 'reason'], ['nextAction', 'reason']);
             state.handoff = { ...state.handoff, ...payload.handoff };
           }
-          for (const update of payload.updates ?? []) {
+          for (const requested of payload.updates ?? []) {
+            requireCondition(Object.hasOwn(request.expectedRevisions, requested.path), 'CONFLICT', `Supply the expected revision: ${requested.path}`);
+            const update = applyEdits(root, request, requested);
             checkDocument(root, state, request, update);
-            requireCondition(Object.hasOwn(request.expectedRevisions, update.path), 'CONFLICT', `Supply the expected revision: ${update.path}`);
             updates.push({ path: update.path, content: update.content, before: request.expectedRevisions[update.path] });
           }
           if (state.status === 'approved') state.status = 'active';
@@ -428,6 +510,7 @@ export async function executeRequest(workspace, request) {
       validate('state', state);
       assertNoSecrets(state);
       updates.push({ path, content: json(state), before: request.expectedRevisions[path] });
+      updates.push({ path: summaryPath(request.changeId), content: json(summarize(root, state, { recordLimit: 10 })), before: revision(root, summaryPath(request.changeId)) });
       const response = { status: 'ok', operationId: request.operationId ?? null, result, revisions: Object.fromEntries(updates.map(update => [update.path, update.content === null ? null : hash(update.content)])) };
       if (request.operationId) {
         ledger.operations[request.operationId] = { inputHash, result: response };
