@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "operation": "question.open",
+  "operationId": "question-open-CHG-0002-1",
+  "role": "orchestrator",
+  "changeId": "CHG-0002",
+  "branch": null,
+  "expectedRevisions": {
+    "docs/scratchpad/CHG-0002/state.json": "sha256:55f16561ca0dd28713b4cadc6041d9e78ac22e2c7d9d9d2e6101f2dce0b9c93a"
+  },
+  "payload": {
+    "text": "自動記録の前提（ホスト確認前）の扱い。確認前は手動利用のままにするか",
+    "options": ["手動利用へ切り替える", "自動記録を一部だけ許す"],
+    "recommendation": "手動利用へ切り替える。拒否を保証できない状態で実行を許さないため",
+    "impact": ["要求の停止条件と移行期間の記述"],
+    "duePhase": "requirements"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "operation": "permission.record",
+  "operationId": "permission-CHG-0002-1",
+  "role": "orchestrator",
+  "changeId": "CHG-0002",
+  "branch": null,
+  "expectedRevisions": {
+    "docs/scratchpad/CHG-0002/state.json": "sha256:18b1be251695e75337a404649282701f584c8c188e632dcb5b3ad5160177e358"
+  },
+  "payload": {
+    "permission": {
+      "operations": ["document.update"],
+      "editPaths": ["docs/spec/changes/CHG-0002/idea.md"],
+      "readPaths": [
+        "docs/idea/",
+        "docs/spec/current/",
+        "docs/scratchpad/CHG-0002/"
+      ],
+      "outputPaths": [],
+      "profiles": [],
+      "allowDelete": false,
+      "human": {
+        "actor": "宮下",
+        "answer": "許可します",
+        "source": "VS Code チャットの確認フォーム回答（CHG-0002 の idea.md 作成と document.update の書き込み許可）",
+        "timestamp": "2026-10-20T00:58:00Z",
+        "recordedBy": "orchestrator"
+      },
+      "phase": "ideation",
+      "roles": ["ideation"]
+    }
+  }
+}
