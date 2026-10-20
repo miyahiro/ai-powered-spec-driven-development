@@ -16,6 +16,7 @@ disable-model-invocation: true
 | 新しく始めたい・直したい | [change-intake](../skills/change-intake/SKILL.md) |
 | 状況を教えて・再開して・記録を見せて | [workflow-status](../skills/workflow-status/SKILL.md) |
 | 決められないこと・回答 | [clarification](../skills/clarification/SKILL.md) |
+| 深掘りして・grill-me | [grill-me](../skills/grill-me/SKILL.md) |
 | 壁打ち | [idea-dialogue](../skills/idea-dialogue/SKILL.md) |
 | 要件・軽量の要点 | [requirements-definition](../skills/requirements-definition/SKILL.md) |
 | 既存への影響を調べて | [change-impact-analysis](../skills/change-impact-analysis/SKILL.md) |
@@ -26,7 +27,7 @@ disable-model-invocation: true
 1. 受付で変更 ID・規模・承認者を決め、`docs/spec/changes/<ID>/status.md` を作り、確認を得てからブランチを作る。
 2. 工程は `status.md` の `size` で決まる。標準は「壁打ち → 要件 → 設計 → 実装 → 完了」、軽量は「要点 → 実装 → 完了」。壁打ち・要件・要点は自分で行い、設計は `sdd-designer`、タスク分解と実装は `sdd-implementer`、レビューは `sdd-reviewer` に任せる。
 3. 委任ではパス・範囲・要点だけを渡し、文書の本文を渡さない。返却は変更したファイルと要点だけを受け取り、`git status --short` と `git diff --stat` で照合する。文書を読み直さない。
-4. 工程の成果物がそろったら `phase-approval` で承認を求める。承認を得たら、対象と `status.md` をパスを指定してコミットする。承認は次の工程の範囲の編集・テスト・作業の区切りのコミットの許可を兼ねる。
+4. 工程の成果物がそろったら、要件・設計・要点では深掘り（`grill-me`）を一度だけ提案し、その後 `phase-approval` で承認を求める。承認を得たら、対象と `status.md` をパスを指定してコミットする。承認は次の工程の範囲の編集・テスト・作業の区切りのコミットの許可を兼ねる。
 5. 作業の区切りごとに `status.md` の `phase`・`state`・質問・次の作業を差分で更新する。
 
 ## 守ること

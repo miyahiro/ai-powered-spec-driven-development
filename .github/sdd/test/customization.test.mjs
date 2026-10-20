@@ -37,9 +37,9 @@ test('four agents have explicit roles and least privilege without custom hooks',
   assert.deepEqual(frontmatter(resolve(folder, 'sdd-orchestrator.agent.md')).agents, ['sdd-designer', 'sdd-implementer', 'sdd-reviewer']);
 });
 
-test('twelve discoverable skills have matching names and actionable procedures', () => {
+test('thirteen discoverable skills have matching names and actionable procedures', () => {
   const folder = resolve(root, 'skills');
-  const expected = ['change-intake', 'workflow-status', 'clarification', 'phase-approval', 'idea-dialogue', 'requirements-definition', 'external-design', 'ddd-internal-design', 'change-impact-analysis', 'task-planning', 'tdd-cycle', 'review'];
+  const expected = ['change-intake', 'workflow-status', 'clarification', 'grill-me', 'phase-approval', 'idea-dialogue', 'requirements-definition', 'external-design', 'ddd-internal-design', 'change-impact-analysis', 'task-planning', 'tdd-cycle', 'review'];
   assert.deepEqual(readdirSync(folder).sort(), [...expected].sort());
   for (const name of expected) {
     const path = resolve(folder, name, 'SKILL.md');
