@@ -6,9 +6,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { safePath, revision, commit, recover, manifest, withLock } from '../lib/store.mjs';
 import { validate, hash, json, redact } from '../lib/validation.mjs';
-import { executeRequest, doctor, commandPrefix, checkCompletion } from '../lib/runtime.mjs';
+import { executeRequest, doctor, commandPrefix, checkCompletion, parseRequestArgument } from '../lib/runtime.mjs';
 import { validateRequest, stableJson } from '../lib/validation.mjs';
 import { checkMount, runVerification } from '../lib/verification.mjs';
+import { recordingStatus, enableAutomatic, disableAutomatic, setRecordingDefault, executingAgents } from '../lib/setup.mjs';
 
 const profile = { mode: 'read-only', tools: { read_file: { kind: 'read' }, run_in_terminal: { kind: 'execute' } } };
 const decision = result => result.hookSpecificOutput.permissionDecision;
@@ -187,6 +188,26 @@ test('managed terminal accepts one fixed request and denies shell injection or r
   assert.equal(decision(evaluateTool({ tool_name: 'run_in_terminal', tool_input: { command } }, 'implementer', managed, root)), 'deny');
 });
 
+test('managed terminal accepts one single-quoted JSON request and denies quote breaks or extra syntax', context => {
+  const root = fixture(context);
+  const managed = { mode: 'managed', hostChecks: { localHooks: true, failureDenies: true }, tools: { run_in_terminal: { kind: 'execute' } } };
+  const text = JSON.stringify(request(root, 'doctor', {}));
+  const allowed = `${commandPrefix(root)}'${text}'`;
+  assert.equal(decision(evaluateTool({ tool_name: 'run_in_terminal', tool_input: { command: allowed } }, 'orchestrator', managed, root)), 'allow');
+  for (const command of [`${allowed}; git push`, `${allowed} extra`, `${commandPrefix(root)}'${text}'\''x'`, `${commandPrefix(root)}'${text.replace('{', '{\n')}'`, `${commandPrefix(root)}${text}`, `${commandPrefix(root)}'[]'`]) {
+    assert.equal(decision(evaluateTool({ tool_name: 'run_in_terminal', tool_input: { command } }, 'orchestrator', managed, root)), 'deny');
+  }
+  assert.equal(decision(evaluateTool({ tool_name: 'run_in_terminal', tool_input: { command: allowed } }, 'implementer', managed, root)), 'deny');
+  assert.equal(decision(evaluateTool({ tool_name: 'run_in_terminal', tool_input: { command: allowed } }, 'orchestrator', { ...managed, mode: 'read-only' }, root)), 'deny');
+});
+
+test('the runner parses base64url or single-line JSON request arguments only', () => {
+  const value = { schemaVersion: 1, operation: 'doctor', note: "it\u0027s" };
+  assert.deepEqual(parseRequestArgument(Buffer.from(JSON.stringify(value)).toString('base64url')), value);
+  assert.deepEqual(parseRequestArgument('{"schemaVersion":1,"note":"it\\u0027s"}'), { schemaVersion: 1, note: "it's" });
+  for (const argument of ["{\"a\":\"'\"}", '{"a":1}\n', '[1]', 'not json!', '']) assert.throws(() => parseRequestArgument(argument));
+});
+
 test('tool guard rejects unscoped reads, protected files and unauthorized delegation', context => {
   const root = fixture(context);
   const scoped = { readRoots: ['docs'], tools: { read_file: { kind: 'read', pathKeys: ['filePath'] }, semantic_search: { kind: 'read', pathKeys: [] }, runSubagent: { kind: 'agent' } } };
@@ -262,4 +283,47 @@ test('behavior completion requires intended Red, Green and current post-refactor
   assert.throws(() => checkCompletion(root, state, [task], false), { code: 'APPROVAL_REQUIRED' });
   writeFileSync(join(root, `${folder}/red.json`), json({ ...evidence, id: 'red', tddStage: 'red', status: 'failed', failureKind: 'behavior', inputRevisions: { 'docs/input.md': hash('prior behavior') } }));
   assert.doesNotThrow(() => checkCompletion(root, state, [task], false));
+});
+
+function setupFixture(context) {
+  const root = fixture(context);
+  mkdirSync(join(root, '.github/sdd'), { recursive: true });
+  mkdirSync(join(root, '.github/agents'), { recursive: true });
+  writeFileSync(join(root, '.github/sdd/profile.json'), JSON.stringify({ mode: 'read-only', recordingDefault: 'automatic', hostChecks: { localHooks: false, failureDenies: false } }));
+  for (const role of [...executingAgents, 'reviewer']) writeFileSync(join(root, `.github/agents/sdd-${role}.agent.md`), `---\nname: sdd-${role}\ntools: [read, search]\n---\n\n# ${role}\n`);
+  return root;
+}
+
+test('automatic recording is the default but stays stopped until a human confirms the host checks', context => {
+  const root = setupFixture(context);
+  assert.equal(recordingStatus(root).recording, 'setup-required');
+  assert.equal(doctor(root).recording, 'setup-required');
+  enableAutomatic(root, 'VS Code example');
+  assert.deepEqual(recordingStatus(root), { recordingDefault: 'automatic', recording: 'automatic', hostChecked: true, executeEnabled: true });
+  assert.match(readFileSync(join(root, '.github/agents/sdd-orchestrator.agent.md'), 'utf8'), /^tools: \[read, search, execute\]$/m);
+  assert.match(readFileSync(join(root, '.github/agents/sdd-reviewer.agent.md'), 'utf8'), /^tools: \[read, search\]$/m);
+  writeFileSync(join(root, '.github/agents/sdd-implementer.agent.md'), '---\nname: sdd-implementer\ntools: [read, search]\n---\n');
+  assert.equal(recordingStatus(root).recording, 'setup-required');
+  disableAutomatic(root);
+  assert.equal(recordingStatus(root).executeEnabled, false);
+  assert.equal(JSON.parse(readFileSync(join(root, '.github/sdd/profile.json'), 'utf8')).mode, 'read-only');
+});
+
+test('a workspace can make manual recording its default without disabling the host checks', context => {
+  const root = setupFixture(context);
+  enableAutomatic(root);
+  setRecordingDefault(root, 'manual');
+  assert.equal(recordingStatus(root).recording, 'manual');
+  setRecordingDefault(root, 'automatic');
+  assert.equal(recordingStatus(root).recording, 'automatic');
+  assert.throws(() => setRecordingDefault(root, 'anything'));
+});
+
+test('agents cannot run the human setup command even after automatic recording is enabled', context => {
+  const root = setupFixture(context);
+  const managed = { mode: 'managed', hostChecks: { localHooks: true, failureDenies: true }, tools: { run_in_terminal: { kind: 'execute' } } };
+  const node = commandPrefix(root).split(' ')[0];
+  for (const command of [`${node} '${join(root, '.github/sdd/bin/setup.mjs')}' enable --confirm-host-checks`, `${commandPrefix(root)}setup`, 'node .github/sdd/bin/setup.mjs default automatic']) {
+    assert.equal(decision(evaluateTool({ tool_name: 'run_in_terminal', tool_input: { command } }, 'orchestrator', managed, root)), 'deny');
+  }
 });

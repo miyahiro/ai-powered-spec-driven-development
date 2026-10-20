@@ -20,7 +20,7 @@
 
 番号だけで互換性を推定せず、`doctor` で設定の発見、tools 制限、Local hook の拒否、runner 起動、形式検査、検証用隔離を確認する。未対応版・未確認の機能は自動操作を有効にしない。実装時に実測した組合せを互換表へ追記する。本設計は上表を検証済みの互換表とは呼ばない。
 
-配布の主な設定数は、共通 instructions 1、agent 8、SKILL.md 15、runtime profile 1 とする。hook は reviewer を除く7 agent の frontmatter に各1つの `PreToolUse`（`node .github/sdd/bin/guard.mjs <role>`、timeout 10 秒）を宣言し、処理本体を共通化する。初期の `tools` は read-only で、工程担当は `[read, search]`、窓口は `[read, search, agent, vscode_askQuestions]`、reviewer は `[read, search]` だけとし、reviewer には hook・execute を付けない。`execute` は DES-TOOL-003 の確認後に人が追加する。
+配布の主な設定数は、共通 instructions 1、agent 8、SKILL.md 15、runtime profile 1 とする。hook は reviewer を除く7 agent の frontmatter に各1つの `PreToolUse`（`node .github/sdd/bin/guard.mjs <role>`、timeout 10 秒）を宣言し、処理本体を共通化する。配布時の `tools` は read-only で、工程担当は `[read, search]`、窓口は `[read, search, agent, vscode_askQuestions]`、reviewer は `[read, search]` だけとし、reviewer には hook・execute を付けない。`execute` は導入時の確認後に人が `setup.mjs enable` で追加する（DES-TOOL-007）。
 
 ```text
 .github/
@@ -29,7 +29,9 @@
   skills/<name>/SKILL.md                # 15手順
   skills/<name>/templates/              # 必要な工程テンプレート（idea / requirements / external-design / internal-design / adr）
   sdd/
-    README.md, user_guide.md           # ランナー契約・利用者向けガイド
+    README.md                          # 導入・管理ガイド（導入 → 有効化 → 運用 → 障害対応）
+    user_guide.md                      # 利用者向けガイド（案件の開始 → 工程 → 完了）
+    reference.md                       # コマンドと操作のリファレンス（全操作の入力・結果・エラー）
     profile.json                       # 環境・ツール対応表・許可プロファイル
     package.json
     package-lock.json
@@ -37,6 +39,7 @@
     lib/                               # runtime / store / validation / verification
     bin/sddctl.mjs                      # 管理下の更新・照合・検証runner
     bin/guard.mjs                       # Local PreToolUse の制約確認
+    bin/setup.mjs                       # 人が実行する自動記録の有効化・無効化・既定の切り替え
     test/                               # ランナーと配布設定の単体テスト
 ```
 
@@ -66,7 +69,7 @@ response は `status`、操作 ID、結果・変更一覧・新版、証跡参�
 
 操作は窓口専用（`change.register`、`question.*`、`decision.record`、`approval.*`、`permission.record`、`workflow.transition`、`integration.record`、`recover`）、読み取り（`scratchpad.read`、`traceability.validate`、`git.inspect`、`doctor`）、担当にも許す文書更新・検証に分ける。reviewer は読み取り操作だけである。工程担当は自分の工程が現在工程で、前工程の承認が現行版である場合だけ `docs/` 配下の文書を更新でき、担当と工程は `ideation` / `requirements` / `external-design` / `internal-design` / `task-planner`（タスク分解）/ `implementer`（開発）に固定対応する。実装担当は依存が `verified` か `obsolete` の実行可能タスクの `editPaths` だけを編集でき、窓口は `docs/` 外のコードを編集しない。タスクの `status` は窓口だけが変更する。検証証跡は `verification/` へ `document.update` で直接書けず、`verification.record` / `verification.run` を通す。状態・操作台帳・復旧情報は文書として更新できない。
 
-人の回答（`human`）は actor・answer・source・timestamp（UTC）を必須とし、任意で recordedBy を持つ。承認は定型の短い肯定、操作許可は定型の短い許可だけ受け付け、自由文から意味を推測しない。回答の出所・要旨は非秘密に限る。
+人の回答（`human`）は actor・answer・source・timestamp（UTC）を必須とし、任意で recordedBy を持つ。対話で得た回答の記録内容は [DES-WF-005](workflow-orchestration.md) に従う。承認は定型の短い肯定、操作許可は定型の短い許可だけ受け付け、自由文から意味を推測しない。回答の出所・要旨は非秘密に限る。
 
 担当別の制約はガードと runner の両方で確認する。工程担当は該当文書だけ、実装担当はタスクのコード・テストだけ、共有状態・回答・承認・許可の記録はオーケストレーターだけとする。role はモデルが自由に選ぶ権限ではなく、agent に固定した hook の role と request が一致する場合だけ受け付ける。
 
@@ -74,7 +77,7 @@ response は `status`、操作 ID、結果・変更一覧・新版、証跡参�
 
 必要性は、指示文だけでは任意の terminal・編集・外部操作を拒否できず、管理下の更新を迂回できてしまうことにある。ガードは対象 agent のツール呼び出し直前だけに適用し、会話送信・終了・毎ターンの検査 hook は追加しない。
 
-ガードは Local の stdin JSON の `tool_name`, `tool_input`（`tool_use_id` は判定に使わない）を読み、実際のツール ID・入力形式と `profile.json` の対応表で判定する。`profile.json` は `mode`（`read-only` / `managed`）、`hostChecks`（`localHooks` / `failureDenies`。人の確認結果の記録）、`readRoots`、ツールごとの `kind`（`read` / `question` / `agent` / `execute`）と `pathKeys` 等、`verificationProfiles` を持つ。初期値は read-only・両確認 false で、ツール ID は候補（`read_file`、`file_search`、`grep_search`、`semantic_search`、`run_in_terminal`、`vscode_askQuestions`、`runSubagent`）であり検証済みではない。別 harness の payload を Local として解釈しない。未知の操作・形式を安全だと推定しない。
+ガードは Local の stdin JSON の `tool_name`, `tool_input`（`tool_use_id` は判定に使わない）を読み、実際のツール ID・入力形式と `profile.json` の対応表で判定する。`profile.json` は `mode`（`read-only` / `managed`）、`recordingDefault`（`automatic` / `manual`）、`hostChecks`（`localHooks` / `failureDenies`、任意の `confirmedAt` / `note`。人の確認結果の記録）、`readRoots`、ツールごとの `kind`（`read` / `question` / `agent` / `execute`）と `pathKeys` 等、`verificationProfiles` を持つ。初期値は read-only・両確認 false で、ツール ID は候補（`read_file`、`file_search`、`grep_search`、`semantic_search`、`run_in_terminal`、`vscode_askQuestions`、`runSubagent`）であり検証済みではない。別 harness の payload を Local として解釈しない。未知の操作・形式を安全だと推定しない。
 
 | ツール種別 | 判定 |
 | --- | --- |
@@ -84,7 +87,7 @@ response は `status`、操作 ID、結果・変更一覧・新版、証跡参�
 | Terminal | `doctor` が生成した固定の Node 実行パスと runner パスによる起動形だけ許可。自由な shell、別実行形式、入力注入・別 terminal へのコマンド送信は拒否 |
 | ブラウザーや追加ツール | 初期の自動権限には含めない。隔離された検証プロファイルまたは人のテスト環境確認で代替 |
 
-Terminal の request は UTF-8 JSON を base64url で1引数にした形とし、秘密値は含めない。起動文字列は `doctor` が返す `commandPrefix`（実体の Node パスと runner パスを単一引用符で引用し末尾に空白）に base64url だけを続けた形で、同期の単発実行に限る（background は拒否）。ガードは request を検証し、`role` が agent の固定 role と一致しなければ拒否する。execute は `mode` が `managed` かつ両確認が true の場合だけ許可し、reviewer には常に許可しない。ガードは一般的なシェル構文解析を実装せず、信頼したパスから生成した起動文字列と base64url 引数の形を照合する。コマンド連結・追加引数・環境変数付与・改行・入出力リダイレクトは受け付けない。runner は JSON を再検証し、子プロセスを `spawn` の引数配列と `shell: false` で実行する。
+Terminal の request は1引数とし、UTF-8 JSON の base64url、または単一引用符で囲んだ1行の JSON オブジェクト（生の単一引用符・改行・制御文字を含まない。必要なら `\u0027` 等でエスケープ）のどちらかとする。秘密値は含めない。1行の JSON は、モデルが長い request を base64url へ正確に変換できないことによる失敗を避けるために認める。単一引用符の内側はシェルが解釈しないため、引用符を閉じる文字がないことを確認すれば追加の構文は入らない。起動文字列は `doctor` が返す `commandPrefix`（実体の Node パスと runner パスを単一引用符で引用し末尾に空白）にこの引数だけを続けた形で、同期の単発実行に限る（background は拒否）。ガードは request を検証し、`role` が agent の固定 role と一致しなければ拒否する。execute は `mode` が `managed` かつ両確認が true の場合だけ許可し、reviewer には常に許可しない。ガードは一般的なシェル構文解析を実装せず、信頼したパスから生成した起動文字列と引数の形を照合する。runner も同じ2つの形だけを受け付ける。コマンド連結・追加引数・環境変数付与・改行・入出力リダイレクトは受け付けない。runner は JSON を再検証し、子プロセスを `spawn` の引数配列と `shell: false` で実行する。
 
 Local hook の拒否は `hookSpecificOutput.permissionDecision: deny` を返す。入力不正・例外は終了コード `2`（stderr に execute 無効化の案内）の阻害として返し、警告だけで継続する終了コードへ落とさない。入力は 1 MiB 以内とする。想定処理は短い形式・範囲検査だけとし、テストや長い解析は hook 内で実行しない。
 
@@ -121,10 +124,39 @@ Git の自動操作は `git.inspect` の現在ブランチ・HEAD・変更状況
 1. 導入先へ共通 instructions、8 agent、15 skill、runtime をコピーする。既存ファイルがあれば差分を確認し、`node_modules`・`.lock/`・別の案件情報はコピーしない。
 2. 人が `npm ci --prefix .github/sdd --ignore-scripts --no-audit --no-fund`、`npm test --prefix .github/sdd`、`node .github/sdd/bin/sddctl.mjs doctor` を実行して依存と環境を準備・確認し、ツール対応表を確認する。システム依存の追加が必要なら人に操作を案内する。
 3. 読み取り専用の構成から開始し、Local、Workspace Trust、custom agents・skills の発見、hooks の実行、既知の操作の拒否を確認する。
-4. `doctor` は Node・OS・harness・mode・実行環境の対応（`localRuntime`: `available` / `unsupported`）、自動操作の状態（`automaticOperations`: `manual-only` / `human-attested-not-independently-verified`）、隔離の状態（`sandbox`: `unsupported` / `manual-only` / `unconfirmed`）、固定の `commandPrefix`、ホスト側で確認が必要な項目、検証対象外（並行担当・MCP）を返す。`unconfirmed` は bubblewrap が起動できるだけで、隔離動作の確認済みを意味しない。
-5. 対応が確認できた管理下の操作だけを有効にし、合意した案件・範囲内で利用する。更新時も差分確認と必要な機能確認だけを行う。
+4. `doctor` は Node・OS・harness・mode・実行環境の対応（`localRuntime`: `available` / `unsupported`）、自動操作の状態（`automaticOperations`: `manual-only` / `human-attested-not-independently-verified`）、記録の方式（`recording`: `automatic` / `manual` / `setup-required`、`recordingDefault`、`hostChecked`、`executeEnabled`）、隔離の状態（`sandbox`: `unsupported` / `manual-only` / `unconfirmed`）、固定の `commandPrefix`、ホスト側で確認が必要な項目、検証対象外（並行担当・MCP）を返す。`unconfirmed` は bubblewrap が起動できるだけで、隔離動作の確認済みを意味しない。
+5. 3 の確認と [ランナー利用方法](../../../../.github/sdd/README.md) の有効化前の確認を終えたら、人が `node .github/sdd/bin/setup.mjs enable --confirm-host-checks` を1回実行し、対話による自動記録（DES-TOOL-007）を有効にする。確認できない場合は確認待ちのままとし、手動利用を選んで進められる。更新時も差分確認と必要な機能確認だけを行い、ホスト・設定が変わったら `disable` して再確認する。
 
-利用者向けの手順は `.github/sdd/user_guide.md` にまとめる。導入先の既存 instructions は無条件に置換せず、共通ルールの衝突だけを確認する。自動アップデーター、詳細な配布方式比較、複数 OS 用インストーラーは作らない。補助機能を利用できない場合は会話・状況確認・人への案内を継続できるが、利用不可の自動操作を成功したとは表示しない。
+文書は読む人ごとに分ける。導入・管理する人の手順は `.github/sdd/README.md` に導入から運用・障害対応までの順で、利用者の手順は `.github/sdd/user_guide.md` に案件の開始から完了までの順でまとめる。コマンド・request・response・エラーの説明は `.github/sdd/reference.md` にまとめ、形式の正本である JSON Schema と矛盾させない。通常の利用者は対話だけで進められるようにし、リファレンスは手動利用と管理の作業でだけ読む。`npm test` は、リファレンスがすべての操作を含むことと、文書内リンクの参照先が実在することを検査する。エージェントもリファレンスを読んで request を組み立てるため、`readRoots` に含める。導入先の既存 instructions は無条件に置換せず、共通ルールの衝突だけを確認する。自動アップデーター、詳細な配布方式比較、複数 OS 用インストーラーは作らない。補助機能を利用できない場合は会話・状況確認・人への案内を継続できるが、利用不可の自動操作を成功したとは表示しない。
+
+## DES-TOOL-007 対話による自動実行と手動利用
+
+DES-WF-005 の自動記録は、既存の `sddctl` と DES-TOOL-003 のガードをそのまま使い、新しい書き込み経路を作らない。状態ファイル・操作台帳・復旧情報を組み込み編集や `document.update` で直接変更しない。
+
+記録の方式は自動記録を既定とし、`profile.json` の `recordingDefault`（`automatic` / `manual`。配布時は `automatic`）で workspace の既定を持つ。実際の方式は次の順に決める。
+
+| 方式（`doctor` の `recording`） | 条件 | 動作 |
+| --- | --- | --- |
+| 手動利用（`manual`） | 人がその会話で手動を選んだ、または `recordingDefault` が `manual` | 窓口が DES-TOOL-003 と同じ形の1行のコマンドと説明を示し、人が実行する。実行後に結果と版を読み直して報告する |
+| 自動記録（`automatic`） | 上記に当たらず、`mode` が `managed`、`hostChecks.localHooks` と `failureDenies` が true、窓口と6工程担当の `tools` に execute がある | 窓口・工程担当が `commandPrefix` と request 引数で runner を同期実行し、response を確認する |
+| 確認待ち（`setup-required`） | 上記のいずれにも当たらない（導入直後を含む） | 記録しない。有効化の手順（DES-TOOL-006）と、手動利用を選べることを示す。読み取り・壁打ち・質問整理・レビューは続けられる |
+
+会話中の手動の選択は、その会話だけに適用し、状態ファイルへは保存しない。人が対話で自動記録へ戻すよう頼めば、確認済みの環境なら自動記録に戻る。`recordingDefault` が `manual` の workspace でも、確認済みなら会話で自動記録を選べる。
+
+窓口は会話の開始・再開時と最初の記録の前に、`profile.json`（秘密を含まないため `readRoots` に含める）と自分の tools で方式を判定し、execute がある場合は `doctor` でも確かめて、応答に現在の方式を示す。自動記録中にガードの想定外の拒否や `ENVIRONMENT_UNSUPPORTED` で条件を満たさなくなった場合は、確認待ちとして記録を止め、理由を示す。未実行の操作を成功と表示しない。
+
+有効化・無効化・既定の切り替えは、人が実行する `node .github/sdd/bin/setup.mjs` で行う。
+
+| コマンド | 内容 |
+| --- | --- |
+| `status` | 現在の `recording`・`recordingDefault`・確認状況・execute の有無を表示 |
+| `enable --confirm-host-checks [--note <確認した環境>]` | DES-TOOL-006 の確認を終えた人が実行する。`mode: managed`、`hostChecks` の2項目と確認日時・メモを記録し、窓口と6工程担当の `tools` に execute を追加する。reviewer には追加しない |
+| `disable` | `mode: read-only`、`hostChecks` を false に戻し、execute を外す。ホスト・設定の変更後に再確認するまで使う |
+| `default automatic` / `default manual` | `recordingDefault` を変更する |
+
+`setup.mjs` は runner とは別のファイルで、ガードは `sddctl` の固定 `commandPrefix` 以外の起動を拒否するため、AI は実行できない。制御設定の編集も編集範囲の除外とガードで拒否する。execute は確認前の配布設定には含めない。hook が動かない環境で execute だけがあると、AI のコマンド実行を拒否できないためである。
+
+`hostChecks` は人の確認結果の記録であり、CLI がホストの拒否を証明した値ではない。この前提は自動記録の方式でも変わらない。
 
 ## 要求との対応
 
@@ -138,7 +170,9 @@ Git の自動操作は `git.inspect` の現在ブランチ・HEAD・変更状況
 | REQ-TOOL-006 | DES-TOOL-002。工程承認・回答と出所の記録。 |
 | REQ-TOOL-007 | DES-TOOL-005。中断照合と MCP 未導入での復旧。 |
 | REQ-TOOL-008 | DES-TOOL-005。原本・実装一体の取り込み確認。 |
-| NFR-TOOL-001 | DES-TOOL-003、DES-TOOL-004。ホスト制限と未対応経路の無効化。 |
+| REQ-TOOL-009 | DES-TOOL-003、DES-TOOL-007。管理下の経路だけの自動実行、導入時1回の人による確認と `setup.mjs` での有効化、確認前の停止。 |
+| NFR-TOOL-001 | DES-TOOL-003、DES-TOOL-004、DES-TOOL-007。ホスト制限と未対応経路の無効化、手動利用への切り替え。 |
+| NFR-COM-007 | DES-TOOL-006。読む人ごとの3文書と、リファレンスの網羅性の検査。 |
 | NFR-TOOL-002 | DES-TOOL-005。結果・秘密のマスク・ファイルからの復元。 |
 
 ## 根拠と実装前の確認

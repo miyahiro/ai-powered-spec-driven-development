@@ -13,16 +13,19 @@ export function frontmatter(path) {
   return YAML.parse(match[1]);
 }
 
-test('eight agents have explicit roles, least privilege and fixed-role hooks', () => {
+test('eight agents have explicit roles, least privilege, fixed-role hooks and execute only after human setup', () => {
   const folder = resolve(root, 'agents');
   const paths = readdirSync(folder).filter(name => name.endsWith('.agent.md'));
   assert.equal(paths.length, 8);
+  const profile = JSON.parse(readFileSync(resolve(root, 'sdd/profile.json'), 'utf8'));
+  const enabled = profile.mode === 'managed' && profile.hostChecks?.localHooks === true && profile.hostChecks?.failureDenies === true;
   for (const name of paths) {
     const data = frontmatter(resolve(folder, name));
     assert.equal(data.name, name.replace('.agent.md', ''));
     assert.ok(data.description.length > 20);
     assert.ok(Array.isArray(data.tools));
-    assert.ok(!data.tools.includes('edit') && !data.tools.includes('execute') && !data.tools.includes('web'));
+    assert.ok(!data.tools.includes('edit') && !data.tools.includes('web'));
+    assert.equal(data.tools.includes('execute'), enabled && data.name !== 'sdd-reviewer', `${data.name}: execute must follow the human setup state`);
     assert.equal(data['user-invocable'], data.name === 'sdd-orchestrator');
     if (data.name === 'sdd-reviewer') {
       assert.deepEqual(data.tools, ['read', 'search']);
@@ -49,18 +52,35 @@ test('fifteen discoverable skills have matching names and actionable procedures'
   }
 });
 
-test('customization documentation links resolve without source-workspace absolute paths', () => {
+const slug = heading => heading.trim().toLowerCase().replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s/g, '-');
+const anchors = path => new Set([...readFileSync(path, 'utf8').replace(/```[\s\S]*?```/g, '').matchAll(/^#{1,6} (.+)$/gm)].map(match => slug(match[1])));
+
+test('customization documentation links and anchors resolve without source-workspace absolute paths', () => {
   function check(path) {
     const text = readFileSync(path, 'utf8');
     assert.ok(!text.includes('/workspaces/ai-powered-spec-drivien-development'));
     for (const match of text.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
-      if (/^https?:|^#/.test(match[1])) continue;
-      assert.ok(existsSync(resolve(dirname(path), match[1].split('#')[0])), `${path}: ${match[1]}`);
+      if (/^https?:/.test(match[1])) continue;
+      const [file, anchor] = match[1].split('#');
+      const target = file ? resolve(dirname(path), file) : path;
+      assert.ok(existsSync(target), `${path}: ${match[1]}`);
+      if (anchor && target.endsWith('.md')) assert.ok(anchors(target).has(decodeURIComponent(anchor)), `${path}: missing anchor ${match[1]}`);
     }
   }
   for (const name of readdirSync(resolve(root, 'agents'))) check(resolve(root, 'agents', name));
   for (const name of readdirSync(resolve(root, 'skills'))) check(resolve(root, 'skills', name, 'SKILL.md'));
   check(resolve(root, 'copilot-instructions.md'));
   check(resolve(root, 'sdd/README.md'));
+  check(resolve(root, 'sdd/user_guide.md'));
+  check(resolve(root, 'sdd/reference.md'));
   check(resolve(root, '../README.md'));
+});
+
+test('the reference describes every runner operation', () => {
+  const schema = JSON.parse(readFileSync(resolve(root, 'sdd/schemas/runtime.schema.json'), 'utf8'));
+  const text = readFileSync(resolve(root, 'sdd/reference.md'), 'utf8');
+  for (const operation of schema.$defs.request.properties.operation.enum) {
+    assert.ok(text.includes(`\n### ${operation}\n`), `missing section: ${operation}`);
+    assert.ok(text.includes(`[\`${operation}\`](#${slug(operation)})`), `missing quick reference row: ${operation}`);
+  }
 });

@@ -6,7 +6,7 @@ user-invocable: true
 
 # タスク分解と検証計画
 
-入力: 現在版の承認済み設計、要件・受入条件、影響分析、整合性指摘、許可範囲。[JSON Schema と操作](../../sdd/README.md) を読む。
+入力: 現在版の承認済み設計、要件・受入条件、影響分析、整合性指摘、許可範囲。[JSON Schema と操作](../../sdd/reference.md) を読む。
 
 1. 内部設計までの承認・入力版を確認する。新しい要求や必須の設計不足があれば差し戻し案を返す。
 2. `tasks.json` に `schemaVersion: 1` と `tasks` を置く。タスクは `TASK-0001` 形式。必須項目は id / title / type / requirementIds / designIds / acceptanceIds / dependsOn / inputs / assignee / editPaths / verification / completionCriteria / status / evidence / review。

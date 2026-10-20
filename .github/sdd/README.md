@@ -1,14 +1,46 @@
-# スペック駆動開発アシスタント
+# スペック駆動開発アシスタント 導入・管理ガイド
 
-8エージェント、15スキル、ローカル状態管理ランナーを他のプロジェクトへ持ち込める構成。初期設定は読み取り専用で、操作ガードや隔離が未確認の環境の自動操作を有効にしない。
+GitHub Copilot / VS Code Local で、アイデアから実装・検証までをスペック駆動で進めるための仕組みです。8エージェント、15スキル、状態を管理するローカルのランナーで構成し、他のプロジェクトへ持ち込めます。
 
-開発を進める利用者向けの手順・工程ごとの依頼例・承認と操作許可・中断と再開は [ユーザーガイド](user_guide.md) を参照してください。本 README は導入とランナーの設定・操作契約を説明します。
+工程は AI との対話（Human-in-the-loop）で進めます。利用者は質問への回答・工程承認・操作許可を対話で答えるだけで、窓口のエージェントが回答を確かめ、ランナーで状態を記録・遷移させます。
 
-## 導入と開始
+本書は、この仕組みを **導入・管理する人** 向けに、作業の順に説明します。
 
-導入先の `.github/copilot-instructions.md`、`.github/agents/`、`.github/skills/`、`.github/sdd/` へ配置する。既存設定がある場合は差分とルールの衝突を確認し、無条件に上書きしない。`node_modules`、ロックディレクトリ、元プロジェクトの案件・Scratchpad は配布しない。
+| 読む人 | 文書 |
+| --- | --- |
+| 導入・管理する人 | 本書 |
+| 開発を進める利用者 | [ユーザーガイド](user_guide.md) |
+| 手動利用を選ぶ人、コマンドや JSON の仕様を知りたい人 | [コマンドと操作のリファレンス](reference.md) |
 
-workspace のルートで、人が次を実行する。Node.js 24系が必要。
+## 目次
+
+1. [導入する](#1-導入する)
+2. [自動記録を有効にする（導入時に1回）](#2-自動記録を有効にする導入時に1回)
+3. [利用を始める](#3-利用を始める)
+4. [運用中に行うこと](#4-運用中に行うこと)
+5. [障害が起きたとき](#5-障害が起きたとき)
+6. [仕組みの説明](#6-仕組みの説明)
+7. [確認状況](#7-確認状況)
+
+## 1. 導入する
+
+### 1-1. ファイルを配置する
+
+導入先の workspace に、次の4か所をコピーします。
+
+| 配置先 | 内容 |
+| --- | --- |
+| `.github/copilot-instructions.md` | 全エージェント共通のルール |
+| `.github/agents/` | 8エージェント |
+| `.github/skills/` | 15スキル |
+| `.github/sdd/` | ランナー、ガード、設定（`profile.json`）、スキーマ、テスト、本書 |
+
+- 導入先に同じファイルがある場合は、差分とルールの衝突を確かめます。無条件に上書きしないでください。
+- `node_modules`、`.github/sdd/.lock/`、配布元の案件（`docs/scratchpad/`、`docs/spec/changes/`）はコピーしません。
+
+### 1-2. 依存を入れて検査する
+
+workspace のルートで次を実行します。Node.js 24系が必要です。
 
 ```sh
 npm ci --prefix .github/sdd --ignore-scripts --no-audit --no-fund
@@ -16,168 +48,174 @@ npm test --prefix .github/sdd
 node .github/sdd/bin/sddctl.mjs doctor
 ```
 
-VS Code Local で Workspace Trust、custom agents と agent skills が利用できることを確認する。通常は `sdd-orchestrator` を選び「新しい仕組みを考えたい」と依頼する。スキルは `/change-intake`、`/workflow-status` 等で直接指定できる。スキルの発見・実際のツール ID・hook 動作は導入先で確認する。
+- `npm test` はランナーの機能と設定の形式を検査します。Copilot の実際の動作を確かめるものではありません。
+- `doctor` は環境と記録の方式を表示します。導入直後は `"recording": "setup-required"`（確認待ち）です。
 
-初期は担当から文書案・差分・JSON 操作案を受け取り、人がランナーを実行する。案を保存済みとは扱わない。読み取りツールが拒否されたら許可範囲と実際の Local 入力を確認し、未知のツールを広く許可する回避をしない。
+### 1-3. VS Code で確認する
 
-## 構成
+1. VS Code Local で workspace を開き、Workspace Trust を許可します。
+2. Copilot Chat のエージェント選択に `sdd-orchestrator` が表示され、`/change-intake` などのスキルが候補に出ることを確かめます。
+
+この時点で、壁打ち・状況確認・レビューなどの読み取りの作業は使えます。ただし状態の記録は、次の「自動記録を有効にする」が済むまで止まります。
+
+## 2. 自動記録を有効にする（導入時に1回）
+
+記録の方式は **自動記録** が既定です。ただし、エージェントにコマンドの実行（execute）を渡す前に、ホストが不正な操作を確実に止められることを人が確かめる必要があります。hook が動かない環境で execute だけを渡すと、AI のコマンド実行を拒否できないためです。
+
+workspace ごとに1回、次の確認を行います。
+
+1. Local で、設定の発見、実際のツール ID と入力の形、役割ごとの tools と委任の制約を確かめます。`profile.json` の `tools` は候補名で、検証済みの対応表ではありません。
+2. `profile.json` の `readRoots` と `pathKeys` を実際の入力に合わせます。glob 検索は、保護ファイルが取得されないことを確かめた対応にだけ `protectedFilesVerified: true` を付けます。範囲を指定できない検索は、`workspaceScopeVerified` を確かめるまで無効のままにします。
+3. 各エージェントの hook が、未知の操作・組み込み編集・自由な terminal・役割の詐称を拒否することを確かめます。hook がない・故障した・時間切れのときにもホストが止めることを確かめます。止められない場合は有効化しないでください。
+4. 確認できたら、次を実行します。`--note` には確認した VS Code / Copilot の版と日付を書きます。
+
+   ```sh
+   node .github/sdd/bin/setup.mjs enable --confirm-host-checks --note "VS Code <版> / Copilot <版> / <確認日>"
+   node .github/sdd/bin/setup.mjs status
+   ```
+
+5. `status` の `recording` が `automatic` なら完了です。`npm test` も成功することを確かめます（テストは profile の確認状況と agent の execute の有無が一致しているかも検査します）。
+
+`enable` は次を変更します。
+
+- `profile.json`: `mode: managed`、`hostChecks` の2項目を true にし、確認日時とメモを記録します。
+- 窓口と6工程担当の `tools`: `execute` を追加します。reviewer は read / search のままです。edit / web は追加しません。
+
+`hostChecks` は人の確認結果の記録で、ランナーがホストの動作を証明した値ではありません。確認できない場合は確認待ちのまま運用します。その場合も、手動利用を選んだ人は記録を進められます（[記録の方式](reference.md#記録の方式)）。
+
+## 3. 利用を始める
+
+利用者に [ユーザーガイド](user_guide.md) を案内します。通常は `sdd-orchestrator` を選び、「新しい仕組みを考えたい」のように依頼するだけで始められます。
+
+手動で進めたい利用者は、窓口に「手動で進めたい」と伝えます（その会話だけ手動になります）。workspace 全体を手動にしたい場合は、管理する人が次を実行します。
+
+```sh
+node .github/sdd/bin/setup.mjs default manual      # 既定を手動利用にする
+node .github/sdd/bin/setup.mjs default automatic   # 既定を自動記録に戻す
+```
+
+## 4. 運用中に行うこと
+
+| いつ | 何をするか |
+| --- | --- |
+| VS Code・Copilot・agent・hook・`profile.json` を更新したとき | `setup.mjs disable` で確認待ちに戻し、変わった機能を確かめてから再び `enable` する |
+| この仕組みを新しい版に更新するとき | 導入時と同じく差分を確かめてからコピーし、`npm ci`・`npm test`・`doctor` を実行する。agent を置き換えた場合は再び `enable` する |
+| 自動検証（隔離実行）を使いたいとき | [隔離検証プロファイルを追加する](#隔離検証プロファイルを追加する) |
+| 記録の状況を確かめたいとき | `setup.mjs status`、`sddctl.mjs doctor`。案件の状態は利用者が窓口に「状況を教えて」と頼むか、[`scratchpad.read`](reference.md#scratchpadread) で読む |
+
+`.github/` 配下（agent・hook・instructions・ランナー）の変更は、人が差分を確かめて行います。エージェントは制御設定を変更できません。
+
+### 隔離検証プロファイルを追加する
+
+自動検証は、Linux の bubblewrap 上で、人が確認した検証プロファイルだけを実行します。`verificationProfiles` は初期状態では空です。
+
+各プロファイルの項目は次のとおりです。
+
+| 項目 | 内容 |
+| --- | --- |
+| `executable` | workspace 内の実行ファイル |
+| `args` | 引数の配列 |
+| `readPaths` | 読み取り専用でマウントするパス |
+| `outputPaths` | 書き込み可能でマウントする生成先 |
+| `network` | `none` |
+| `environment` | `PATH` / `HOME` / `LANG` / `NODE_ENV` / `CI` の秘密でない値だけ |
+| `isolationVerified` | 人が隔離の動作を確かめたら `true` |
+| `timeoutMs` | 任意。既定は60秒 |
+
+- 作業ディレクトリは `/workspace` 固定で、`readPaths` と `outputPaths` は同じ名前のパスにマウントされます。実行用の wrapper と生成先は人が事前に用意します。
+- toolchain の `/usr`、`/bin`、`/lib`、`/lib64` と指定した入力だけを読み取り専用、生成先だけを書き込み可能にします。ホーム・秘密・Git・制御設定・socket は見せず、外部ネットワークは無効です。入力に symlink・秘密ファイル・制御設定があれば止まります。`node_modules` 全体を安全とは見なさず、必要な秘密でない実体のパスを選びます。
+- 生成先には専用のディレクトリを使い、仕様・状態・検証の入力を含めません。新しいコマンド・マウント・ネットワークは許可範囲の変更です。隔離できない場合の自動再試行や、隔離なしの実行はしません。
+- UI/E2E は、テスト用のサーバーとブラウザーを同じプロファイルに含めます。loopback・依存・生成先を確かめられなければ手動検証にします。実サービスでの購入・送信や本番の資格情報は使いません。
+
+## 5. 障害が起きたとき
+
+| 症状 | 対処 |
+| --- | --- |
+| `INCOMPLETE_UPDATE` が返る（`pending/` が残っている） | [`recover`](reference.md#recover) を `apply: false` で調べる。残りのファイルが期待版か適用予定の版と一致する場合だけ、人が明示的に許可して `apply: true` を実行する。人の別の変更が見つかったら消さず、差分の統合と復旧の判断を行う |
+| `CONFLICT` で「An update lock is present」 | 実行中の操作がないことを確かめてから `rmdir .github/sdd/.lock` で外す。ランナーは時刻だけでロックを外さない |
+| hook が失敗する・未知のツールを拒否する | ツールの対応と入力の形、ホストの動作を確かめる。Allow All や自由な terminal で回避しない。必要なら `setup.mjs disable` |
+| `ENVIRONMENT_UNSUPPORTED`（隔離検証） | 手動検証に切り替える。隔離なしで再実行しない |
+| 利用者に「確認待ち」と表示される | [自動記録を有効にする](#2-自動記録を有効にする導入時に1回) を行う |
+
+エラーの一覧と対処は [リファレンスのエラーと対処](reference.md#エラーと対処) にあります。復旧情報（`pending/` のジャーナル）の内容は、秘密でない適用予定の内容です。完了後は内容を除き、版とパスの履歴だけを残します。
+
+## 6. 仕組みの説明
+
+### 構成
 
 | エージェント | 担当 |
 | --- | --- |
-| sdd-orchestrator | 受付・状態・回答・承認・許可・引き継ぎの窓口 |
-| sdd-ideation | 壁打ちと範囲 |
-| sdd-requirements | 機能別要件・非機能・受入条件 |
-| sdd-external-design | 利用者・外部システムに見える動作 |
-| sdd-internal-design | DDD・構成・データ・処理・運用・検証 |
-| sdd-task-planner | 依存順タスク・検証計画・追跡表 |
-| sdd-implementer | 指定タスクの実装・TDD・検証 |
-| sdd-reviewer | 読み取り専用の独立レビュー |
+| `sdd-orchestrator` | 利用者との窓口。受付・質問・承認・許可・状態・引き継ぎ |
+| `sdd-ideation` | 壁打ちと範囲 |
+| `sdd-requirements` | 機能別の要求・非機能・受入条件 |
+| `sdd-external-design` | 利用者・外部システムに見える動作 |
+| `sdd-internal-design` | DDD・構成・データ・処理・運用・検証 |
+| `sdd-task-planner` | 依存順のタスク・検証計画・追跡表 |
+| `sdd-implementer` | 指定タスクの実装・TDD・検証 |
+| `sdd-reviewer` | 読み取り専用の独立レビュー |
 
-窓口だけを通常の選択対象とし、必要な担当へ直列に委任する。担当呼び出し不可なら手順は役割切り替えで続けられるが独立確認とは表示しない。独立レビューは別の人の確認でも代替できる。
+- 通常の選択対象は窓口だけで、窓口が必要な担当へ順に委任します。担当を呼び出せない環境では役割を切り替えて続けますが、独立した確認とは表示しません。独立レビューは別の人の確認でも代替できます。
+- スキルは、受付・状況・再開・質問・引き継ぎ、壁打ち・要求・外部設計・内部設計、影響分析・原本更新・整合性レビュー・タスク分解・TDD・検証とレビューの15種類です。[共通ルール](../copilot-instructions.md) と各 SKILL.md の開始条件に従います。
 
-スキルは受付・状況・再開・質問・引き継ぎ、壁打ち・要求・外部設計・内部設計、影響分析・原本更新・整合性レビュー・タスク分解・TDD・検証とレビューの15種類。[共通ルール](../copilot-instructions.md) と各 SKILL.md の開始条件を守る。
+### 記録の方式と対話の手順
 
-## 保存先と版
+記録の方式（自動記録・手動利用・確認待ち）の判定と、窓口が対話で判断を得て記録する手順は、[リファレンスの対話による記録と遷移](reference.md#対話による記録と遷移) にあります。
 
-| 保存先 | 役割 |
+### 工程と承認
+
+| 工程 | 承認する人 |
 | --- | --- |
-| `docs/spec/current/` | 全体仕様の候補原本。既定ブランチへの取り込み・本番反映は別。内部設計の判断記録（ADR）は `design/decisions/` |
-| `docs/spec/changes/CHG-0001/` | change.md、工程差分、tasks.json、traceability.json、verification/、decisions/（ADR 案。推奨・任意） |
-| `docs/scratchpad/CHG-0001/` | state.json、operations.json、pending/、人向け overview.md |
+| 壁打ち → 要求定義 → 外部設計 | 発注者 |
+| 内部設計 | 技術責任者 |
+| タスク分解・整合性確認 | 追加の承認はない（追跡表の検査と必須の指摘の解消） |
+| 開発・テスト | 技術責任者（開発完了の承認） |
 
-案件番号をパスへ使用し、任意のブランチ名をパスにしない。
+- 工程と進行状態（作業中・阻害・承認待ちなど）は別に管理します。
+- 変更なし・対象外の工程も、理由・参照版・人の回答を記録したうえで承認します。
+- 期限が現在工程までの未解決の質問だけが阻害になります。回答を記録しただけでは、正式な仕様へ反映済みとは扱いません。
+- 開発完了の承認は、マージの許可ではありません。人が取り込んだ後に、ブランチ・コミットと承認対象の内容を照合して記録します。本番反映は取り込みから推定しません。
 
-設計判断記録（ADR）は内部設計の判断だけを対象とし、起票は推奨である。案件中は `docs/spec/changes/CHG-0001/decisions/` に仮番号で起票し、内部設計の工程一式に含めて承認する。承認後の Accepted の ADR を `canonical-spec-update` で `docs/spec/current/design/decisions/ADR-0001-<題>.md` へ正式番号で反映する。反映後は書き換えず、新しい ADR で置き換える。既存原本の暗黙の判断は遡って起票しない。専用のスキル・承認工程・ランナー設定は追加せず、通常の文書として扱う。テンプレートは [adr.md](../skills/ddd-internal-design/templates/adr.md)。
+### 証跡
 
-ランナーの書き込みは workspace 相対 POSIX パスだけ。絶対パス、`..`、`.`、空のパス成分、symlink、秘密ファイル、制御設定への書き込みを拒否する。通常タスクは `.git/`、`.github/`、`.vscode/` を変更できない。
-
-ファイルの revision は正確なバイト列の `sha256:<64桁>`。未作成は `null`。工程 manifest は相対パスとファイル hash のソート済み map から計算する。フォルダ roots によりファイル追加・削除も検出する。状態・質問・承認記録は承認対象に含めない。外部設計と内部設計は別の成果物集合を選ぶ。新規プロジェクトでは `design/external/` と `design/internal/` に分けると後工程の追加を前工程の変更と混同しにくい。
-
-短時間の workspace 共通ロックと期待版照合で更新を直列化する。各ファイルの置換は原子的だが複数ファイル全体は原子的ではない。置換前に pending を保存し、途中更新が残る間は新しい更新・工程移行を止める。人の手動編集を排他する仕組みではない。
-
-## 人がランナーを操作する
-
-JSON request を人が確認して準備し、UTF-8 JSON の base64url を1引数に渡す。以下の `request.json` は利用者が準備する入力ファイルの例で、配布する案件データではない。
-
-```sh
-node .github/sdd/bin/sddctl.mjs encode request.json
-node .github/sdd/bin/sddctl.mjs "$(node .github/sdd/bin/sddctl.mjs encode request.json)"
-```
-
-上記の command substitution は人の手動利用専用。エージェントの管理下 execute は `doctor` が返す固定 `commandPrefix` と base64url だけを結合する。一般の shell、追加引数、改行、リダイレクト、別 terminal への入力を許可しない。
-
-初期受付の request 例。役割名は例であり、実際の人と目的・範囲を確認して置き換える。
-
-```json
-{
-  "schemaVersion": 1,
-  "operation": "change.register",
-  "operationId": "register-CHG-0001-1",
-  "role": "orchestrator",
-  "changeId": "CHG-0001",
-  "branch": null,
-  "expectedRevisions": { "docs/scratchpad/CHG-0001/state.json": null },
-  "payload": {
-    "kind": "new",
-    "purpose": "合意した目的",
-    "scope": { "in": ["対象範囲"], "out": ["対象外"] },
-    "actors": { "customer": "発注者", "technicalLead": "技術責任者" },
-    "git": { "defaultBranch": null, "branch": null, "baseCommit": null }
-  }
-}
-```
-
-Git 未準備の受付・壁打ちは可能。正式管理へ進む前に人が許可済みの Git 準備を行い、同じ案件に実際の branch、defaultBranch、baseCommit を新しい操作 ID で登録する。ランナーは Git 初期化・ブランチ作成をしない。
-
-すべての mutation には state.json の現在版が必要。`scratchpad.read` で状態と版を取得できる。対象を変更する操作は、対象ファイルの現在版または未作成の `null` も expectedRevisions に追加する。
-
-## 操作契約
-
-共通項目は schemaVersion、operation、role、changeId、branch、expectedRevisions、payload。形式定義は [共通 Schema](schemas/runtime.schema.json) と [操作 Schema](schemas/operations.schema.json)。操作 ID が必要な登録・承認・許可・移行は、同じ ID・同じ入力を再送すると永続保存した結果を返す。キー順の違いは同じ入力として扱う。内容を変えるなら新 ID を使う。
-
-| operation | payload と用途 |
+| 種類 | 内容 |
 | --- | --- |
-| change.register | kind / purpose / scope / actors / git。新規受付、または未登録 Git 情報を結び付ける |
-| scratchpad.read | 任意の path。省略で state と revision |
-| scratchpad.update | updates と任意の handoff。共有 handoff は窓口だけ |
-| document.update | updates: [{path, content}]。content: null は許可済み削除 |
-| question.open | text / options / recommendation / impact / duePhase |
-| question.record_answer | questionId / human、任意の reflectedIn。実際の反映先がなければ answered |
-| decision.record | text / rationale / questionIds / references |
-| permission.record | permission: operations / editPaths / readPaths / outputPaths / profiles / allowDelete / human、担当用 phase / roles |
-| approval.request | roots、任意の disposition。工程の成果物集合と入力版を作成 |
-| approval.record | phase / revision / judgment / human |
-| workflow.transition | action: activate / pause / resume / return / advance。pause / resume / return は human、return は nextPhase |
-| traceability.validate | 任意の specRoots。参照・要求と受入条件の網羅を確認。意味の適合はレビュー |
-| verification.run | id / profile / taskIds / inputRevisions、任意の method / tddStage |
-| verification.record | evidence。人の手動確認・レビュー結果の記録 |
-| git.inspect | 空の payload。ブランチ・HEAD・変更状況だけ |
-| integration.record | branch / commit / human。人の取り込み後の一体反映確認 |
-| recover | apply: false で調査。apply: true には明示許可の human |
-| doctor | 空の payload。直接 CLI の doctor でも利用可能 |
+| automatic | 隔離実行の実際のコマンドと終了コードから作る |
+| manual | 人の手順・観測・回答の出所。実行していないコマンド・終了コードは作らない |
+| review | 別の担当または人による独立レビューの指摘・結果・入力版。窓口が記録する |
 
-human は actor / answer / source / timestamp（UTC ISO時刻）、任意の recordedBy。会話や確認文書の識別情報と必要な回答要旨だけを保存する。認証・電子署名ではなく、人の回答を運用上合意して記録する。「続けて」、疑問、保留を承認としない。肯定の要旨は「承認します」「この工程を承認します」「工程一式を承認します」、操作許可は「許可します」「この操作を許可します」等の短い定型で記録する。自由文からの意味の推測をせず、曖昧なら人に確認する。
+- TDD の Red / Green は当時の履歴として残します。完了の証明は、現在の版での Refactor 後の検証と独立レビューで行います。
+- 自動の失敗は `unknown` とし、意図した振る舞いの Red かどうかは人が観測して手動の証跡で分類します。環境・構文の失敗を Red とはしません。
+- 文書・環境構築のタスクは、それに合った確認方法を使います。必須の検証の未実施・実行不能を成功とはしません。
+- 開発完了には、全必須タスクの検証・独立レビュー・受入条件との対応と、技術責任者の承認が必要です。
 
-permission 例の要点: operations に `document.update`、editPaths に当該要件文書、phase に `requirements`、roles に `requirements` を含めると担当にその工程・範囲だけを与える。roles / phase がない許可は窓口だけに使用する。reviewer に書き込み許可は付けられない。削除・検証プロファイル・生成先・Git 操作は別の項目として合意する。通常の合意済み反復作業に再許可を要求しない。
+### 設計判断記録（ADR）
 
-response は status、結果・対象新版、operationId、エラーと nextAction を返す。`CONFLICT`、`OUT_OF_SCOPE`、`BRANCH_MISMATCH`、`INVALID_FORMAT`、`APPROVAL_REQUIRED`、`PERMISSION_REQUIRED`、`ENVIRONMENT_UNSUPPORTED`、`INCOMPLETE_UPDATE` を成功へ読み替えない。traceability の status が ok でも result.valid が false なら参照不備が残る。
+内部設計の判断のうち、後から変えにくいものを ADR として残すことを推奨します（必須ではありません）。
 
-## 工程と証跡
+1. 案件中は `docs/spec/changes/<changeId>/decisions/` に仮番号で起票し、内部設計の工程一式に含めて承認します。
+2. 承認後、Accepted の ADR を `canonical-spec-update` で `docs/spec/current/design/decisions/ADR-0001-<題>.md` へ正式番号で反映します。
+3. 反映後は書き換えず、新しい ADR で置き換えます。
 
-工程は ideation → requirements → external-design → internal-design → task-planning → development。進行状態とは別。発注者が最初の3工程、技術責任者が内部設計と開発完了を承認する。タスク分解には追加の承認を作らない。変更なし・対象外は disposition に kind / rationale / referenceRevision / human を記録したうえで通常の工程承認を行う。
+既存の原本にある暗黙の判断は、遡って起票しません。テンプレートは [adr.md](../skills/ddd-internal-design/templates/adr.md) です。
 
-質問は期限が現在工程までの unresolved だけを阻害とする。回答だけを保存して正式仕様へ反映済みとはしない。阻害を解消したら activate、差し戻しは return、中断は pause、再開は resume を窓口が使う。
+### 安全上の前提と制約
 
-tasks.json は schemaVersion と tasks、traceability.json は schemaVersion と links を持つ。ID は `TASK-0001`、`REQ-EXAMPLE-001`、`NFR-EXAMPLE-001`、`AC-EXAMPLE-001`、`DES-EXAMPLE-001` 形式。既存 ID を安定して維持する。testRefs / evidenceRefs は相対パスと任意の `#識別子`。形式検査だけでは意味の適合を保証しない。
+- ランナーは workspace 相対のパスだけに書き込みます。制御設定（`.git/`、`.github/`、`.vscode/`）・秘密ファイル・symlink への書き込みを拒否します。保存先と版の詳細は [リファレンスのファイルと版](reference.md#ファイルと版) にあります。
+- Git の初期化・コミット・ブランチ作成・push・PR・マージ・本番反映は自動で行いません。ランナーは Git を読み取るだけです。
+- agent ごとの hook だけでホスト全体を確実に止められるとは主張しません。人の手動操作、別の通常の agent、OS 上の別プロセスは制御の対象外です。
+- 本人認証・電子署名・改ざん防止の基盤は実装していません。人の回答を運用上記録する仕組みです。
 
-証跡は対象タスク、入力ファイルの hash、環境、時刻、方法、観測結果、status、次操作を持つ。管理上の state・operations・証跡自身のように記録操作で変わるファイルを検証入力に含めない。
-
-- automatic: 実際の runner 実行から command / exitCode を作成する。
-- manual: 人の手順・観測・回答出所。実行していない command / exitCode を作らない。
-- review: 別の担当または人の independent / reviewer と指摘・結果・入力版を記録する。窓口だけが合意した記録を保存する。
-
-TDD の Red / Green は当時の履歴を残し、完了の証明は現在版の Refactor 後検証と独立レビューで行う。自動失敗は unknown とし、意図した振る舞いの Red かを人が観測・分類した手動証跡を別 ID で残す。環境・構文の失敗を Red としない。documentation / setup は適切な検証を選ぶ。必須の未実施・環境不可を成功としない。
-
-窓口が verified を記録する際も証跡を検査する。開発完了には全必須タスクの検証・独立レビュー・受入条件との対応と技術責任者承認が必要。開発完了承認は merge 許可ではない。許可された人の取り込み後に branch / commit と承認対象の正確なバイト列を照合し、integration.record を残す。production は取り込みから推定しない。
-
-## 自動操作を有効にする前に
-
-1. Local で設定の発見、実際の tool ID・入力 schema、役割別 tools と委任制約を確認する。profile.json の tools は候補名であって検証済み対応表ではない。
-2. readRoots と pathKeys を実測に合わせる。検索の glob は保護ファイルが取得されないことを確認した mapping にだけ protectedFilesVerified: true を設定する。スコープ指定できない検索は workspaceScopeVerified を実測確認するまで無効。
-3. 各 agent の固定役割 hook が未知操作・組み込み編集・自由な terminal・役割詐称を拒否することを確認する。hook 不在・故障・タイムアウト時もホストが阻害できることを人が確認する。拒否を保証できなければ execute を追加しない。
-4. 確認結果・VS Code / Copilot の実際の版と日付を導入先で記録し、人が profile の hostChecks.localHooks / failureDenies を true、mode を managed にする。フラグは人の確認結果の記録であり CLI がホストを証明した値ではない。
-5. 対応確認済みの7担当の tools だけに execute を追加する。edit / web は追加しない。reviewer は read / search のまま。既存のテストは読み取り専用配布設定を検査するため、この変更後は配布設定用の検査をそのまま運用設定の合否とは扱わない。
-6. doctor が返す実体 Node / runner パスと1つの base64url 引数だけを使う。未知のツール、別 harness、ホストの Allow All、別 terminal 入力で迂回しない。設定更新時は必要な機能だけ再確認する。
-
-agent-scoped hook だけでホスト全体を fail-closed にできるとは主張しない。人の手動操作、別の通常 agent、OS 上の別プロセスは制御対象外。本人認証・改ざん防止基盤は実装しない。control 設定の変更は人が別途差分確認する。
-
-## 隔離検証
-
-自動検証は Linux の bubblewrap と人が実測確認したプロファイルだけ。`verificationProfiles` は初期では空。検証 worker の起動試験・namespace 制限確認は今回実施していない。
-
-各 profile の項目: executable（workspace 内の実行可能ファイル）、args（配列）、readPaths、outputPaths、network: none、environment（PATH / HOME / LANG / NODE_ENV / CI の非秘密値だけ）、isolationVerified、任意の timeoutMs。作業ディレクトリは `/workspace` 固定。readPaths と outputPaths は同名の worker 内パスへマウントされる。必要な実行 wrapper と生成先は人が事前に準備する。
-
-toolchain の `/usr`、`/bin`、`/lib`、`/lib64` と明示した入力だけを読み取り専用、生成先だけを書き込み可能にする。ホーム・秘密・Git・制御設定・socket を露出せず、外部ネットワークを無効にする。入力ディレクトリ内に symlink・秘密ファイル・制御設定等がある場合も停止する。依存は必要な非秘密の実体パスを選び、一般の node_modules 全体を安全だと推定しない。
-
-生成先は既存の専用ディレクトリとし、仕様・状態・検証入力を書き込める範囲にしない。コード・依存変更はタスク編集、検証は生成物だけを作る。profile は対象・読み取り・生成先・許可と一緒に確認する。新しい command / mounts / network は範囲変更。隔離失敗の自動再試行・非隔離フォールバックをしない。
-
-UI/E2E は worker 内のテスト用サーバーとブラウザーを同じプロファイルに含める。loopback・依存・生成先を確認できなければ手動検証へ切り替える。実サービスへの購入・送信、本番資格情報を使った検証は行わない。依存取得・システム依存追加は人へ案内する。
-
-## 復旧
-
-pending があれば通常更新を停止し、recover の apply: false で調査する。残るファイルが期待版または適用予定版と一致する場合だけ、人の明示許可で apply: true を行う。人の別変更が見つかれば消さず、差分統合と復旧判断を依頼する。
-
-`.github/sdd/.lock/` が残っている場合は、実行中操作がないことを人が確認してから解除する。ランナーは時刻だけで解除しない。復旧ジャーナルの内容は非秘密の適用予定内容。完了後に内容を除き、版・パスの履歴を残す。
-
-## 確認状況
+## 7. 確認状況
 
 | 項目 | 状態 |
 | --- | --- |
-| Ubuntu 24.04 / Node.js v24.21.0 | ローカル runner の単体テスト実行環境 |
+| Ubuntu 24.04 / Node.js v24.21.0 | ローカルのランナーの単体テスト環境 |
 | 8 agent / 15 skill | YAML・名前・用途・権限・ローカル参照を自動検査 |
 | 状態・工程・期待版・操作 ID・復旧 | ローカルテストで確認。全受入条件の実機検証済みとは扱わない |
-| VS Code 1.141.0 / Copilot Local | 設定候補。実際の発見・hook 故障時制御・ツール対応は未確認 |
-| bubblewrap 0.9.0 | version 表示のみ。隔離動作未確認、自動プロファイルなし |
-| 並行担当 / MCP 連携 | 合意どおり検証対象外 |
+| request の2つの形（base64url / 1行 JSON）のガード・ランナー検査 | ローカルテストで確認 |
+| 対話による自動記録 | 手順を agent・skill に定義。`setup.mjs` と方式の判定はローカルテストで確認。Copilot 実機での対話・execute は未確認 |
+| VS Code 1.141.0 / Copilot Local | 設定の候補。実際の発見・hook 故障時の制御・ツールの対応は未確認 |
+| bubblewrap 0.9.0 | 版の表示のみ確認。隔離の動作は未確認で、自動の検証プロファイルはない |
+| 並行担当 / MCP 連携 | 合意どおり検証の対象外 |
 
-`npm test` はローカル機能・否定ケースと設定の形式検査。Copilot の実セッション・隔離 worker・全ワークフローの実機受入試験を代替しない。未確認の自動経路は無効のまま使用する。
+`npm test` はローカルの機能・否定ケースと設定の形式の検査です。Copilot の実セッション・隔離 worker・全ワークフローの実機での受入試験の代わりにはなりません。

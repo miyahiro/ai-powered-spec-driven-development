@@ -1,9 +1,10 @@
 {
   "schemaVersion": 1,
   "mode": "read-only",
+  "recordingDefault": "automatic",
   "harness": "Local",
   "hostChecks": { "localHooks": false, "failureDenies": false },
-  "readRoots": ["docs", "README.md", ".github/skills", ".github/agents", ".github/copilot-instructions.md", ".github/sdd/README.md"],
+  "readRoots": ["docs", "README.md", ".github/skills", ".github/agents", ".github/copilot-instructions.md", ".github/sdd/README.md", ".github/sdd/reference.md", ".github/sdd/profile.json"],
   "tools": {
     "read_file": { "kind": "read", "pathKeys": ["filePath"] },
     "file_search": { "kind": "read", "pathKeys": ["query"] },

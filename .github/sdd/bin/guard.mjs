@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { relative, isAbsolute } from 'node:path';
 import { safePath } from '../lib/store.mjs';
 import { validateRequest, roles } from '../lib/validation.mjs';
-import { commandPrefix } from '../lib/runtime.mjs';
+import { commandPrefix, parseRequestArgument } from '../lib/runtime.mjs';
 
 export function evaluateTool(event, role, profile, root) {
   const deny = reason => ({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason } });
@@ -38,11 +38,12 @@ export function evaluateTool(event, role, profile, root) {
   if (event.tool_input.mode && event.tool_input.mode !== 'sync' || event.tool_input.isBackground === true) return deny('The runner must be a one-shot synchronous command.');
   const prefix = commandPrefix(root);
   if (typeof command !== 'string' || !command.startsWith(prefix)) return deny('Only the fixed runtime command is permitted.');
-  const encoded = command.slice(prefix.length);
-  if (!/^[A-Za-z0-9_-]+$/.test(encoded)) return deny('Additional shell syntax is prohibited.');
+  const argument = command.slice(prefix.length);
+  const quoted = /^'(\{[^']*\})'$/.exec(argument);
+  if (!quoted && !/^[A-Za-z0-9_-]+$/.test(argument)) return deny('Additional shell syntax is prohibited.');
   let request;
   try {
-    request = validateRequest(JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')));
+    request = validateRequest(parseRequestArgument(quoted ? quoted[1] : argument));
   } catch {
     return deny('Invalid runtime request.');
   }

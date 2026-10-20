@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { phases, requireCondition, validate, validateRequest, validateTasks, hash, json, stableJson, assertNoSecrets, redact } from './validation.mjs';
 import { safePath, revision, readJson, manifest, pendingJournals, withLock, commit, recover } from './store.mjs';
 import { runVerification, sandboxStatus } from './verification.mjs';
+import { recordingStatus } from './setup.mjs';
 
 const rolePhases = { ideation: 'ideation', requirements: 'requirements', 'external-design': 'external-design', 'internal-design': 'internal-design', 'task-planner': 'task-planning', implementer: 'development' };
 const readOperations = new Set(['scratchpad.read', 'traceability.validate', 'git.inspect', 'doctor']);
@@ -17,6 +18,12 @@ const within = (path, prefix) => path === prefix.replace(/\/$/, '') || path.star
 export function commandPrefix(root) {
   const quote = value => `'${value.replaceAll("'", "'\\''")}'`;
   return `${quote(realpathSync(process.execPath))} ${quote(resolve(root, '.github/sdd/bin/sddctl.mjs'))} `;
+}
+
+export function parseRequestArgument(argument) {
+  if (typeof argument === 'string' && /^[A-Za-z0-9_-]+$/.test(argument)) return JSON.parse(Buffer.from(argument, 'base64url').toString('utf8'));
+  if (typeof argument === 'string' && /^\{[^'\u0000-\u001f\u007f]*\}$/.test(argument)) return JSON.parse(argument);
+  throw new Error('A request must be one base64url argument or one single-line JSON object without single quotes.');
 }
 
 function gitBytes(root, argumentsList) {
@@ -186,6 +193,7 @@ export function doctor(root) {
     node: process.version, platform: process.platform, harness: profile.harness ?? 'unconfirmed', mode: profile.mode,
     localRuntime: Number(process.versions.node.split('.')[0]) === 24 ? 'available' : 'unsupported',
     automaticOperations: automatic ? 'human-attested-not-independently-verified' : 'manual-only',
+    ...recordingStatus(root),
     hostVerificationRequired: ['Local tool IDs and payloads', 'agent and skill discovery', 'hook denial and hook failure behavior'],
     sandbox: sandboxStatus(),
     commandPrefix: commandPrefix(root),

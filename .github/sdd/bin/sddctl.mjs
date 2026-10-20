@@ -1,5 +1,5 @@
 import { realpathSync, readFileSync } from 'node:fs';
-import { executeRequest, doctor } from '../lib/runtime.mjs';
+import { executeRequest, doctor, parseRequestArgument } from '../lib/runtime.mjs';
 import { redact } from '../lib/validation.mjs';
 
 try {
@@ -11,9 +11,8 @@ try {
     JSON.parse(text);
     console.log(Buffer.from(text).toString('base64url'));
   } else {
-    const encoded = process.argv[2];
-    if (process.argv.length !== 3 || !/^[A-Za-z0-9_-]+$/.test(encoded ?? '')) throw new Error('Use doctor, encode <request.json>, or exactly one base64url JSON request.');
-    const result = await executeRequest(root, JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')));
+    if (process.argv.length !== 3) throw new Error('Use doctor, encode <request.json>, or exactly one request argument.');
+    const result = await executeRequest(root, parseRequestArgument(process.argv[2]));
     console.log(JSON.stringify(result, null, 2));
     if (result.status === 'error') process.exitCode = 1;
   }
