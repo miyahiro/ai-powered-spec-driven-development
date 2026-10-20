@@ -1,6 +1,6 @@
 # ツール・Git・検査スクリプト設計
 
-状態: 設計ドラフト。入力: [ツール要求](../requirements/tool-integration.md)、[共通要求](../requirements/common.md)。
+入力: [ツール要求](../requirements/tool-integration.md)、[共通要求](../requirements/common.md)。
 
 ## DES-TOOL-001 環境と配置
 

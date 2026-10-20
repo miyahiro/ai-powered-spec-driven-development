@@ -4,8 +4,6 @@
 
 Copilot / VS Code の既存の機能と Git を使い、独自の実行基盤を持たずに作業する。補助スクリプトは検査だけに使う。
 
-状態: 要求定義ドラフト。
-
 出典: [docs/idea/intial-idea.md](../../../idea/intial-idea.md) 第8章。共通要求: [common.md](common.md)。
 
 ## 機能要件・業務ルール

@@ -1,6 +1,6 @@
 # 仕様・成果物・状態ファイル設計
 
-状態: 設計ドラフト。入力: [仕様管理要求](../requirements/specification-management.md)。工程: [ワークフロー設計](workflow-orchestration.md)。
+入力: [仕様管理要求](../requirements/specification-management.md)。工程: [ワークフロー設計](workflow-orchestration.md)。
 
 ## DES-SPEC-001 配置
 

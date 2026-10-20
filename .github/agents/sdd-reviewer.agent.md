@@ -1,6 +1,6 @@
 ---
 name: sdd-reviewer
-description: "要件・設計・タスク・コード・テストを、実装とは独立に読み取り専用でレビューするときに使う。ドラフトのレビューにも使える。"
+description: "要件・設計・タスク・コード・テストを、実装とは独立に読み取り専用でレビューするときに使う。承認前の成果物のレビューにも使える。"
 tools: [read, search]
 agents: []
 user-invocable: false
