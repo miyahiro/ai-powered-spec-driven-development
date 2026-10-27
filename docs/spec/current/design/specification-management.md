@@ -16,7 +16,7 @@ docs/
       tasks.md                    # タスク一覧（実装の工程から）
       idea.md                     # 壁打ちの結果（必要な場合）
       outline.md                  # 軽量の設計の要点
-      notes.md                    # 検討のメモ（必要な場合）
+      note.md                     # 作業メモ（必要な場合。DES-WF-005）
       decisions/                  # ADR 案（推奨・任意）
 ```
 

@@ -12,14 +12,14 @@ user-invocable: true
 2. `git status --short` と `git diff --stat` から、この工程の対象のファイルの一覧を作る。案件と関係のない変更は対象に入れない。
 3. 要件・設計・要点の承認で、この工程でまだ深掘りをしていなければ、[grill-me](../grill-me/SKILL.md) を一度だけ提案する。断られたら続ける。続いて、工程、対象のファイル、変更の要点（数行）を示し、確認フォームで「承認する／修正する」を聞く。自由入力では「承認します」「この工程を承認します」など明確な肯定だけを承認とする。「続けて」、条件付き、疑問は聞き直す。回答した人が `status.md` の `approvers` にいなければ承認しない。
 4. 承認されたら `status.md` を更新する。承認の表に「工程・日時（YYYY-MM-DD）・承認者・対象のパス（`,` 区切り）」の行を足し、`phase` を次の工程（`requirements` の承認なら `design`、`design` と `outline` の承認なら `implementation`、`completion` の承認なら `done`）、`state` を `active`（完了なら `done`）にし、次の作業を書く。
-5. 対象のパスと `status.md` だけを指定してコミットする。`git add -A` や `git add .` は使わない。
+5. 対象のパスと `status.md` だけを指定してコミットする。`note.md` に未コミットの変更があれば一緒に含める（承認の表の対象には入れない）。`git add -A` や `git add .` は使わない。
 
    ```sh
    git add -- <対象のパス> docs/spec/changes/<ID>/status.md
    git commit -m "approve(<工程>): <ID> <題名>" -m "承認者: <名前>" -m "対象: <パス>, <パス>"
    ```
 
-6. コミットのハッシュを示す。設計の承認で ADR 案が採用されたら、`docs/spec/current/design/decisions/` へ正式な番号で移す作業を次の作業に入れる。完了の承認の後は、push・PR・マージの手順を案内する（AI は実行しない）。
+6. コミットのハッシュを示す。設計の承認で ADR 案が採用されたら、`docs/spec/current/design/decisions/` へ正式な番号で移す作業を次の作業に入れる。完了の承認の後は、push・PR・マージの手順を案内する（AI は実行しない）。次の工程と作業を示して止まり、次の工程は依頼を受けてから始める。
 
 「修正する」と言われたら、指摘を聞いて成果物を直し、もう一度この手順を行う。前の工程へ戻す場合は確認してから `phase` を戻す。
 
