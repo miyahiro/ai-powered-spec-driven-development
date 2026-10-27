@@ -13,20 +13,24 @@
 
 ```text
 .github/
-  copilot-instructions.md           # 共通ルール
+  instructions/
+    sdd.instructions.md             # 共通ルール（applyTo: "**"）
   agents/
     sdd-orchestrator.agent.md       # 窓口
     sdd-designer.agent.md           # 設計
     sdd-implementer.agent.md        # 実装
     sdd-reviewer.agent.md           # レビュー
-  skills/<name>/SKILL.md            # 12の手順（必要なものは templates/ を持つ）
+  skills/<name>/SKILL.md            # 13の手順（必要なものは templates/ を持つ）
   sdd/
     README.md                       # 導入・管理ガイド
     user_guide.md                   # 利用者向けガイド
     check.mjs                       # 検査スクリプト
-    package.json                    # テストの実行用（依存なし）
+    package.json                    # テストと検査の実行用（依存なし）
+    .gitignore                      # テストの一時ファイルなどを除く
     test/                           # 検査スクリプトと配布設定のテスト
 ```
+
+共通ルールは `.github/copilot-instructions.md` ではなく `.github/instructions/sdd.instructions.md` に置く。`copilot-instructions.md` は導入先のプロジェクトが自分の基本ルール（応答の言語、コーディング方針など）を書くファイルで、配布物には含めない。配布物と導入先のファイルが重ならないため、導入・更新で導入先の指示とマージする必要がない。
 
 検査スクリプトは、どれか1つのスキルの中ではなく `sdd/` に置く。複数のスキル・エージェント・共通ルールから使われ、`docs/` と `.github/` の全体を検査し、導入・更新の確認で人も実行するため。
 
@@ -45,7 +49,7 @@
 
 ## DES-TOOL-003 検査スクリプト
 
-`node .github/sdd/check.mjs [変更ID] [--json]` で実行する。ファイルを書き換えず、Git は読み取りのコマンドだけを使う。
+`node .github/sdd/check.mjs [変更ID] [--json]` で実行する。ファイルを書き換えず、Git は読み取りのコマンド（`log`・`diff`・`ls-files`・`branch`）だけを使う。
 
 | 検査 | 対象 | 種別 |
 | --- | --- | --- |
@@ -55,7 +59,7 @@
 | 状態ファイルの形式 | `docs/spec/changes/*/status.md` の frontmatter の項目と値、質問・承認の表の値（DES-SPEC-003） | エラー |
 | タスク一覧の形式 | `docs/spec/changes/*/tasks.md` の状態の値 | エラー |
 | 期限の来た質問 | 現在の工程までが期限の `open` の質問 | 警告 |
-| 承認後の変更 | 承認の行ごとに、`approve(<工程>): <変更ID>` のコミットと今の作業ツリーの差分を対象のパスについて取り、変わったファイルがあるか | 警告 |
+| 承認後の変更 | 承認の行ごとに、`approve(<工程>): <変更ID>` のコミットと今の作業ツリーの差分を対象のパスについて取り、変わったファイルや未追跡のファイルがあるか | 警告 |
 | 承認のコミットがない | 承認の行に対応するコミットが見つからない | 警告 |
 
 変更 ID を指定すると、その案件の要約（題名・規模・工程・状態・ブランチと今のブランチ・期限の来た質問・承認と再承認が必要な工程・タスクの件数・次の作業）も出す。`--json` で同じ内容を JSON で出す。
@@ -66,17 +70,17 @@
 ## DES-TOOL-004 安全
 
 - ターミナルの実行と編集は、Copilot / VS Code の標準の確認に従う。利用者がツールの自動承認を設定するかは利用者が決める。
-- 独自の hook・ガード・隔離実行環境は持たない。AI に許す Git 操作は DES-TOOL-002 のとおりで、共通 instructions とエージェントの指示で守る。
+- 独自の hook・ガード・隔離実行環境は持たない。AI に許す Git 操作は DES-TOOL-002 のとおりで、共通ルール（`sdd.instructions.md`）とエージェントの指示で守る。
 - 外部サービスへの書き込み、実際の購入・送信、本番の資格情報を使う操作はしない。テストは開発環境の中で行う。
 - 既存の文書・コードの部分的な変更は、エディターの差分の編集で行う。
 
 ## DES-TOOL-005 導入
 
-1. 導入先へ `.github/copilot-instructions.md`、`.github/agents/`、`.github/skills/`、`.github/sdd/` をコピーする。同じファイルがあれば差分を確かめ、無条件に上書きしない。
+1. 導入先へ `.github/instructions/sdd.instructions.md`、`.github/agents/`、`.github/skills/`、`.github/sdd/` をコピーする。同じファイルがあれば差分を確かめ、無条件に上書きしない。導入先の `.github/copilot-instructions.md` は変更しない。
 2. `node .github/sdd/check.mjs` で検査スクリプトが動くことを確かめる（依存のインストールは不要）。
 3. Copilot Chat で `sdd-orchestrator` を選び、依頼する。
 
-更新も同じ手順で行う。自動の更新機構は作らない。
+更新も同じ手順で行う。共通ルールが `copilot-instructions.md` にあった版から更新するときは、その内容を `copilot-instructions.md` から取り除く。自動の更新機構は作らない。
 
 ## 要件との対応
 

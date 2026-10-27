@@ -11,7 +11,7 @@ GitHub Copilot / VS Code で、アイデアから実装・検証までを、AI �
 
 | 配置 | 内容 |
 | --- | --- |
-| `.github/copilot-instructions.md` | 全エージェント共通のルール |
+| `.github/instructions/sdd.instructions.md` | 全エージェント共通のルール（`applyTo: "**"`） |
 | `.github/agents/` | 4つのエージェント（窓口・設計・実装・レビュー） |
 | `.github/skills/` | 13の手順（受付、状況確認、質問、深掘り、承認、壁打ち、要件、外部設計、内部設計、影響の調査、タスク分解、TDD、レビュー）とテンプレート |
 | `.github/sdd/check.mjs` | 検査スクリプト（読み取りだけ、依存なし） |
@@ -21,7 +21,7 @@ GitHub Copilot / VS Code で、アイデアから実装・検証までを、AI �
 
 ## 2. 導入する
 
-1. 導入先の workspace に、上の表の `.github/` 配下をコピーします。同じファイルがある場合は差分を確かめ、無条件に上書きしないでください。
+1. 導入先の workspace に、上の表の `.github/` 配下をコピーします。同じファイルがある場合は差分を確かめ、無条件に上書きしないでください。`.github/copilot-instructions.md` は配布物に含まれません。導入先のプロジェクトの基本ルール（応答の言語、コーディング方針など）を書く場所として、そのまま使ってください。
 2. workspace のルートで、検査スクリプトが動くことを確かめます。Node.js 20 以上があれば、依存のインストールは不要です。
 
    ```sh
@@ -84,6 +84,7 @@ node .github/sdd/check.mjs CHG-0001 --json
 | いつ | 何をするか |
 | --- | --- |
 | この仕組みを新しい版に更新する | 導入と同じく差分を確かめてコピーし、`node .github/sdd/check.mjs` を実行する |
+| 共通ルールが `copilot-instructions.md` にあった版から更新する | `.github/copilot-instructions.md` から「スペック駆動開発の共通ルール」の内容を取り除く（プロジェクトの基本ルールは残す）。共通ルールは `.github/instructions/sdd.instructions.md` から読み込まれる |
 | 配布設定を変えた | `npm test --prefix .github/sdd` で、エージェント・スキルの構成とリンクを確かめる（依存のインストールは不要） |
 | 検査でエラーが出た | 表示されたファイルと行を直す。意味の確認はレビュー担当に頼む |
 

@@ -1,103 +1,99 @@
 # スペック駆動開発 構成まとめ
 
-本リポジトリの `.github/` 配下に作成している、スペック駆動開発用のエージェント・スキル・共通指示・ローカルランナーの整理。
+本リポジトリの `.github/` 配下にある、スペック駆動開発（SDD）のための共通ルール・エージェント・スキル・検査スクリプトの構成をまとめる。導入と運用は [導入・管理ガイド](.github/sdd/README.md)、使い方は [ユーザーガイド](.github/sdd/user_guide.md)、決定の根拠は [要件定義](docs/spec/current/requirements/README.md) と [設計](docs/spec/current/design/README.md) を参照する。
 
 ## 1. 全体像
 
-- 進め方: 壁打ち → 要件定義 → 外部設計 → 内部設計 → タスク分解・整合性確認 → 開発・テスト
-- 通常の入口は `sdd-orchestrator` のみ。必要な担当へ直列に委任する。
-- 初期設定は**読み取り専用**。操作ガード・隔離が未確認の環境では execute を有効にしない。
-
 | 種類 | 場所 | 数 |
 | --- | --- | --- |
-| 共通指示 | [.github/copilot-instructions.md](.github/copilot-instructions.md) | 1 |
-| エージェント | [.github/agents/](.github/agents) | 8 |
-| スキル | [.github/skills/](.github/skills) | 15 |
-| ローカルランナー | [.github/sdd/](.github/sdd) | 1 式 |
-| 仕様（候補原本） | [docs/spec/current/](docs/spec/current) | 要件・設計 |
+| 共通ルール | [.github/instructions/sdd.instructions.md](.github/instructions/sdd.instructions.md) | 1 |
+| エージェント | [.github/agents/](.github/agents/) | 4 |
+| スキル | [.github/skills/](.github/skills/) | 13 |
+| 検査スクリプトとテスト | [.github/sdd/](.github/sdd/) | 1 式 |
+| 仕様の原本 | [docs/spec/current/](docs/spec/current/) | 要件・設計 |
 
-## 2. 共通指示（copilot-instructions.md）
+- 入口は窓口のエージェント `sdd-orchestrator`。利用者は自然言語で依頼し、窓口が工程と担当を選ぶ。
+- 工程は規模で選ぶ。標準は「壁打ち → 要件 → 設計 → 実装 → 完了」で承認3回、軽量は「要点 → 実装 → 完了」で承認2回。
+- 案件の状態は `status.md` 1枚に書き、承認は Git のローカルのコミット（`approve(<工程>): <変更ID> <題名>`）として残す。
+- 操作の安全は Copilot / VS Code の標準の確認に任せ、独自の hook・ガード・ランナーは持たない。依存のインストールは不要。
+- [.github/copilot-instructions.md](.github/copilot-instructions.md) はこのリポジトリ自身の基本ルール（応答の言語、コーディング方針）で、配布物には含めない。
 
-日本語で対話・文書化する。主なルール:
+## 2. 共通ルール
 
-- **保存先**: 全体仕様の候補原本 `docs/spec/current/`、変更記録 `docs/spec/changes/<change-id>/`、共有状態 `docs/scratchpad/<change-id>/`。変更ブランチの候補原本を「既定ブランチへ取り込み済み・本番反映済み」とは呼ばない。
-- **質問**: 決められない前提は質問にし、選択肢・推奨・影響・確認期限の工程を示す。後工程の質問で現在作業を止めない。回答のない事項を決定済みにしない。
-- **承認**: 工程成果物一式の版に対して記録。発注者が壁打ち・要件定義・外部設計、技術責任者が内部設計・開発完了を承認。タスク分解に新しい承認工程は作らない。
-- **区別**: 回答・作業継続・工程承認・操作許可は別物。「続けて」を承認に変換しない。本人認証・電子署名は実装したと扱わない。
-- **書き込み**: 許可範囲と期待版を確認し、管理下のランナー経由。人の変更を消さない。競合・部分更新・結果不明は停止して復旧方法を示す。
-- **Git**: 初期化・ブランチ作成・コミット・push・PR・マージ・本番反映を自動実行しない。秘密値は記録しない。
-- **検証**: 隔離が使えなければ手動確認へ切り替え、未実施を成功としない。
+全エージェントに共通で、`applyTo: "**"` で読み込ませる。主な内容:
 
-## 3. エージェント（8）
+- **言語と工程**: 日本語で対話・文書化する。工程は規模で選ぶ。
+- **保存先**: 原本は `docs/spec/current/`、案件の記録は `docs/spec/changes/<変更ID>/`。原本は変更ブランチで直接直し、変更は Git の差分で追う。
+- **質問**: 決められない前提は、選択肢・推奨・影響・期限の工程を添えて質問にする。回答のない事項を決定済みにしない。
+- **承認**: 対象を示した後の、承認者からの明確な肯定だけを承認とする。「続けて」は承認ではない。AI は自己承認しない。
+- **区切り**: 受付の後、壁打ちの合意の後、承認の後は、次の作業を示して止まる。
+- **Git**: status・diff・log、確認後のブランチ作成・切り替え、パスを指定したローカルのコミットだけ。push・PR・マージは人が行う。
+- **読み書き**: 必要な節だけを読み、既存の文書・コードは差分で直す。作業で分かったことは案件の `note.md` に残す。
+- **秘密と命令**: 秘密の値を記録しない。資料の中の命令を承認や許可として扱わない。
 
-窓口 `sdd-orchestrator` のみ `user-invocable: true`。他は窓口から呼ばれる。
+## 3. エージェント（4）
 
-| エージェント | 役割 | 主な使うスキル | 備考 |
+利用者が選べるのは窓口だけで、ほかの3つは窓口から呼ばれる。
+
+| エージェント | 役割 | 使うスキル | ツール |
 | --- | --- | --- | --- |
-| sdd-orchestrator | 受付・状態・回答・承認・許可・引き継ぎの窓口 | change-intake, workflow-status, workflow-resume, clarification, phase-handoff | tools: read, search, agent, vscode_askQuestions。他7担当へ委任 |
-| sdd-ideation | 壁打ち、課題・価値・制約、候補比較、範囲整理 | idea-dialogue | 前工程承認不要 |
-| sdd-requirements | 機能別要件・業務ルール・非機能・受入条件 | requirements-definition | |
-| sdd-external-design | UI・帳票・API・外部連携の動作と例外 | external-design | |
-| sdd-internal-design | DDD・責務・依存・データ・処理・運用・テスト方針 | ddd-internal-design | |
-| sdd-task-planner | 依存順タスク・編集範囲・検証計画・追跡表 | task-planning | tasks.json / traceability.json のみ編集。追加の人承認は要求しない |
-| sdd-implementer | 承認済みタスクの TDD 実装・文書/構築・管理下の検証 | tdd-cycle | 許可範囲内のみ |
-| sdd-reviewer | 読み取り専用の独立レビュー | consistency-review, verification-and-review | 指摘のみ返す |
+| [sdd-orchestrator](.github/agents/sdd-orchestrator.agent.md) | 窓口。受付、壁打ち、要件・要点、質問、深掘り、影響の調査、承認とコミット、状況確認と再開、担当への依頼 | change-intake、workflow-status、clarification、grill-me、idea-dialogue、requirements-definition、change-impact-analysis、phase-approval | read、search、edit、execute、agent、vscode_askQuestions |
+| [sdd-designer](.github/agents/sdd-designer.agent.md) | 外部設計・内部設計・ADR | external-design、ddd-internal-design | read、search、edit |
+| [sdd-implementer](.github/agents/sdd-implementer.agent.md) | タスク分解とテスト先行の実装 | task-planning、tdd-cycle | read、search、edit、execute |
+| [sdd-reviewer](.github/agents/sdd-reviewer.agent.md) | 読み取りだけの独立レビュー | review | read、search |
 
-共通: `tools: [read, search]`、`agents: []`、`PreToolUse` hook で `node .github/sdd/bin/guard.mjs <role>` を実行（例: task-planner は `guard.mjs task-planner`）。担当呼び出し不可なら役割切り替えで続行できるが「独立確認」とは表示しない。
+委任ではパス・範囲・要点だけを渡し、返却は変更したファイルと要点で受け取って `git diff --stat` で照合する。
 
-## 4. スキル（15）
+## 4. スキル（13）
 
-| 区分 | スキル | 用途 |
-| --- | --- | --- |
-| 受付・運用 | change-intake | 新規・改善・修正の受付。目的、変更 ID、対象、承認役割、Git 準備と操作許可 |
-| | workflow-status | 進捗・現在工程・阻害・承認待ち・質問待ちの確認（応答のみ） |
-| | workflow-resume | 中断・結果不明からの再開。保存状態・ブランチ・版・許可を照合 |
-| | clarification | 未解決の前提・選択肢・回答の整理。現在必要な質問と後工程の質問を分離 |
-| | phase-handoff | 工程承認と次工程への引き継ぎ。成果物一式・入力版・承認・許可を分けて確認 |
-| 上流工程 | idea-dialogue | アイデア壁打ち（templates/idea.md） |
-| | requirements-definition | 要件定義（templates/feature-requirements.md） |
-| | external-design | 外部設計（templates/external-design.md） |
-| | ddd-internal-design | DDD 内部設計（templates/internal-design.md） |
-| 変更管理 | change-impact-analysis | 改善・修正の影響、互換性、移行、回帰、再検証・再承認の対象 |
-| | canonical-spec-update | 合意変更を候補原本と変更記録へ反映（マージはしない） |
-| | consistency-review | 要件・設計・原本・タスク・追跡表の整合性レビュー（指摘のみ） |
-| 下流工程 | task-planning | 承認済み内部設計からタスク分解・検証計画・追跡表 |
-| | tdd-cycle | Red・Green・Refactor による開発 |
-| | verification-and-review | 受入条件への適合、検証証跡、独立レビュー、完了前提の確認 |
+すべて `/` から直接呼ぶこともできる。
 
-`/change-intake`、`/workflow-status` などで直接指定も可能。
+| 区分 | スキル | 用途 | テンプレート |
+| --- | --- | --- | --- |
+| 受付・運用 | [change-intake](.github/skills/change-intake/SKILL.md) | 変更 ID・目的・範囲・規模・承認者を決め、`status.md` を作り、確認してからブランチを作る | status.md |
+| | [workflow-status](.github/skills/workflow-status/SKILL.md) | 状況確認・記録の表示・再開。`status.md` と検査スクリプトの要約だけで答える | — |
+| | [clarification](.github/skills/clarification/SKILL.md) | 質問の整理と、回答の反映 | — |
+| | [grill-me](.github/skills/grill-me/SKILL.md) | 承認の前に1問ずつ問い詰めて、判断の抜けを洗い出す | — |
+| | [phase-approval](.github/skills/phase-approval/SKILL.md) | 対象を示して承認を求め、`status.md` とローカルのコミットに残す | — |
+| 上流工程 | [idea-dialogue](.github/skills/idea-dialogue/SKILL.md) | 壁打ち。課題・価値・制約と候補を比較する | idea.md |
+| | [requirements-definition](.github/skills/requirements-definition/SKILL.md) | 要件定義（標準）、要件と設計の要点（軽量） | feature-requirements.md、outline.md |
+| | [external-design](.github/skills/external-design/SKILL.md) | UI・帳票・API・CLI・外部連携の動きと例外 | external-design.md |
+| | [ddd-internal-design](.github/skills/ddd-internal-design/SKILL.md) | DDD の責務・境界・不変条件、構成、データ、処理、テスト方針、ADR | internal-design.md、adr.md |
+| 変更管理 | [change-impact-analysis](.github/skills/change-impact-analysis/SKILL.md) | 改善・修正の影響、互換性、移行、回帰、承認し直す工程を読み取りだけで調べる | — |
+| 下流工程 | [task-planning](.github/skills/task-planning/SKILL.md) | 設計（軽量では要点）から依存順のタスクと確認方法を `tasks.md` にまとめる | tasks.md |
+| | [tdd-cycle](.github/skills/tdd-cycle/SKILL.md) | Red・Green・Refactor で実装し、結果を `tasks.md` に残す | — |
+| | [review](.github/skills/review/SKILL.md) | 要件・設計・タスク・コード・テストの整合性を読み取りだけでレビューする | — |
 
-## 5. ローカルランナー（.github/sdd/）
+## 5. 検査スクリプトとテスト（.github/sdd/）
 
 | ファイル | 役割 |
 | --- | --- |
-| [README.md](.github/sdd/README.md) | 導入手順と操作契約 |
-| [user_guide.md](.github/sdd/user_guide.md) | 利用者向けガイド（工程ごとの依頼例、承認・許可、中断・再開、困ったとき） |
-| profile.json | 動作モード（現状 `read-only`）、読み取り許可パス、ツール種別、検証プロファイル |
-| bin/sddctl.mjs, bin/guard.mjs | ランナー CLI（`doctor`・`status` 等）／hook 用ガード |
-| lib/ (runtime, store, validation, verification) | 状態管理・検証の実装 |
-| schemas/ | operations / runtime の JSON Schema |
-| test/ | customization / runtime のテスト（`node --test`） |
+| [check.mjs](.github/sdd/check.mjs) | 検査スクリプト。ID の重複、受入条件のない要件、リンク切れ、`status.md`・`tasks.md` の形式をエラーとして、期限の来た質問、承認後の変更、承認のコミットがないことを警告として出す。変更 ID を指定すると案件の要約を出す |
+| [package.json](.github/sdd/package.json) | テストと検査の実行用（依存なし、Node.js 20 以上） |
+| test/ | 検査スクリプトのテストと、配布設定（エージェント・スキル・共通ルールの構成）のテスト |
+| [README.md](.github/sdd/README.md)、[user_guide.md](.github/sdd/user_guide.md) | 導入・管理ガイド、利用者向けガイド |
 
-- 導入: Node.js 24 系。`npm ci --prefix .github/sdd --ignore-scripts --no-audit --no-fund` → `npm test --prefix .github/sdd` → `node .github/sdd/bin/sddctl.mjs doctor`
-- 依存: ajv 8.17.1, yaml 2.8.1
-- 初期は担当が文書案・差分・JSON 操作案を返し、人がランナーを実行する。案を保存済みと扱わない。
-- 版管理: ファイルは `sha256:<64桁>` のバイト列 hash（未作成は `null`）。工程 manifest は相対パス→hash のソート済み map。ロックと期待版照合で更新を直列化し、複数ファイル更新は pending を残して途中失敗を検出する。
-- 書き込みパス: workspace 相対 POSIX パスのみ。絶対パス・`..`・symlink・秘密ファイル・制御設定は拒否。通常タスクは `.git/`・`.github/`・`.vscode/` を変更不可。
+```sh
+node .github/sdd/check.mjs            # 仕様と案件の検査
+node .github/sdd/check.mjs CHG-0001   # 案件の状況の要約
+npm test --prefix .github/sdd         # 検査スクリプトと配布設定のテスト
+```
 
-## 6. 保存先と案件構成
+検査スクリプトはファイルを書き換えず、Git は読み取りのコマンドだけを使う。
+
+## 6. 保存先
 
 | 保存先 | 内容 |
 | --- | --- |
-| `docs/spec/current/` | 全体仕様の候補原本（現状: requirements/ と design/ に common・development-verification・specification-management・tool-integration・workflow-orchestration） |
-| `docs/spec/changes/CHG-0001/` | change.md、工程差分、tasks.json、traceability.json、verification/ |
-| `docs/scratchpad/CHG-0001/` | state.json、operations.json、pending/、overview.md |
-| `docs/idea/` | 初期アイデア（intial-idea.md） |
+| `docs/spec/current/requirements/` | 要件の原本（common、workflow-orchestration、specification-management、development-verification、tool-integration） |
+| `docs/spec/current/design/` | 設計の原本（同じ区分）。採用した ADR は `decisions/` |
+| `docs/spec/changes/<変更ID>/` | 案件の記録。`status.md`（状態・質問・承認）、`idea.md`（壁打ち）、`outline.md`（軽量の要点）、`tasks.md`（タスク一覧）、`note.md`（作業メモ）、`decisions/`（ADR 案） |
+| `docs/idea/` | 初期のアイデア |
 
 ## 7. 利用の流れ
 
-1. `sdd-orchestrator` を選び「新しい仕組みを考えたい」等と依頼 → change-intake で案件登録
-2. 壁打ち → 要件定義 → 外部設計 → 内部設計：各工程で成果物一式を作り、承認者の承認を版に対して記録
-3. タスク分解・整合性確認（追加承認なし）
-4. 開発（TDD）・検証・独立レビュー → 技術責任者が開発完了を承認
-5. 中断時は workflow-status / workflow-resume で状況確認・再開
+1. `sdd-orchestrator` を選び、「新しく始めたい」「直したい」と依頼する。受付で変更 ID・規模・承認者を決める。
+2. 標準では壁打ち・要件・設計、軽量では要点を作る。各工程の成果物がそろったら、深掘りを一度提案した後に承認を求め、承認をコミットする。
+3. 実装担当が `tasks.md` を作り、テスト先行で実装する。必要ならレビュー担当が読み取りだけでレビューする。
+4. 完了を承認したら、push・PR・マージの手順が案内され、人が行う。
+5. 中断した案件は「状況を教えて」「再開して」と依頼すると、`status.md` と検査スクリプトの要約から続ける。

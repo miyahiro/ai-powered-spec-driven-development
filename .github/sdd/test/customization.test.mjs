@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { check } from '../check.mjs';
@@ -53,10 +53,19 @@ test('thirteen discoverable skills have matching names and actionable procedures
 });
 
 test('instructions forbid remote Git operations and broad staging', () => {
-  const text = readFileSync(resolve(root, 'copilot-instructions.md'), 'utf8');
+  const path = resolve(root, 'instructions/sdd.instructions.md');
+  assert.equal(frontmatter(path).applyTo, '**');
+  const text = readFileSync(path, 'utf8');
   for (const phrase of ['push', 'git add -A', 'approve(<工程>)', 'check.mjs']) assert.ok(text.includes(phrase), phrase);
   const approval = readFileSync(resolve(root, 'skills/phase-approval/SKILL.md'), 'utf8');
   assert.match(approval, /git add -- <対象のパス> docs\/spec\/changes\/<ID>\/status\.md/);
+});
+
+test('project-wide instructions are left to the workspace', () => {
+  const path = resolve(root, 'copilot-instructions.md');
+  if (!existsSync(path)) return;
+  const text = readFileSync(path, 'utf8');
+  for (const phrase of ['approve(<工程>)', 'check.mjs', 'sdd-orchestrator']) assert.ok(!text.includes(phrase), phrase);
 });
 
 test('this repository passes its own check without errors', () => {

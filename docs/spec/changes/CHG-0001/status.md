@@ -30,4 +30,4 @@ branch:
 
 ## 次の作業
 
-- 実装: outline.md のとおりに共通ルールを移し、テスト・導入ガイド・tool-integration.md を直し、spec-driven-dev-summary.md を書き直す（ブランチは作らず `main` で進める。利用者の判断）。
+- 完了の承認: TASK-1〜5 は done。読み込まれ方（`applyTo: "**"`）は利用者が VS Code で確かめる。必要なら `sdd-reviewer` のレビューを受けてから、`phase-approval` で完了の承認を求める（ブランチは作らず `main` で進める。利用者の判断）。
