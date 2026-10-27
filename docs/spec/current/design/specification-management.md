@@ -1,6 +1,6 @@
 # 仕様・成果物・状態ファイル設計
 
-入力: [仕様管理要求](../requirements/specification-management.md)。工程: [ワークフロー設計](workflow-orchestration.md)。
+入力: [仕様管理要件](../requirements/specification-management.md)。工程: [ワークフロー設計](workflow-orchestration.md)。
 
 ## DES-SPEC-001 配置
 
@@ -8,7 +8,7 @@
 docs/
   spec/
     current/                      # 原本（変更ブランチで直接更新する）
-      requirements/               # 機能ごとの要件・共通要求
+      requirements/               # 機能ごとの要件・共通要件
       design/                     # 外部設計・内部設計
         decisions/                # 採用済みの ADR（ADR-0001-<題>.md）
     changes/<変更ID>/             # 変更記録
@@ -32,10 +32,11 @@ docs/
 | 壁打ち | 課題・利用者・価値・候補の比較・採否・範囲・対象外 | `idea.md` |
 | 要件 | 目的・シナリオ・機能要件・業務ルール・非機能要件・受入条件と ID | 原本 `requirements/` の機能ごとの文書 |
 | 要点（軽量） | 原本の要件の変更（差分）＋設計の要点（変える箇所、方針、テストの方針）を数行 | 原本＋`outline.md` |
-| 外部設計 | UI の状態・操作・入力・権限・エラー、帳票、外部連携の契約。不要なら省略の理由1行 | 原本 `design/` |
-| 内部設計 | 業務モデル・構成・データ・処理・エラー・認証認可・共通機能・運用・テスト・技術判断のうち必要なもの | 原本 `design/` |
+| 外部設計 | UI の状態・操作・入力・権限・エラー、帳票、外部連携の契約。不要なら省略の理由1行 | 原本 `design/<機能>.md` の「外部設計」の部 |
+| 内部設計 | 業務モデル・構成・データ・処理・エラー・認証認可・共通機能・運用・テスト・技術判断のうち必要なもの | 原本 `design/<機能>.md` の「内部設計」の部 |
 
-- 要求 ID は `REQ-<機能>-001` 等、設計 ID は `DES-<機能>-001` とし、設計には対応する要求 ID を書く。既存の ID は変えない。
+- 設計文書は要件の機能文書と同じ単位・同じファイル名とし、外部設計と内部設計を1つの文書の部に分けて書く。
+- 要件 ID は `REQ-<機能>-001` 等、設計 ID は `DES-<機能>-001`（`<機能>` は英大文字の略号）とし、設計には対応する要件 ID を書く。既存の ID は変えない。
 - 新規の支援先アプリでは、DDD の5層（プレゼンテーション・コントローラー・アプリケーション・ドメイン・インフラストラクチャ）を標準とし、ドメインを他の層や DB・Web フレームワークに依存させない。既存の構成では、適用する範囲と例外を人と合意して書く。
 - テンプレートは各スキルの `templates/` にあり、新しい文書を作るときだけ読む。既存の文書は今の章立てに合わせて差分で直す。
 
@@ -102,9 +103,9 @@ branch: change/CHG-0001
 `docs/spec/changes/<変更ID>/tasks.md` に表で書く。テンプレートは `task-planning/templates/tasks.md`。
 
 ```markdown
-| ID | 内容 | 要件・受入条件 | 確認方法 | 状態 | 結果 |
-| --- | --- | --- | --- | --- | --- |
-| TASK-1 | 一覧の初期表示を未完了だけにする | REQ-INQ-003、AC-INQ-005 | TDD（npm test） | done | npm test 成功（a1b2c3d） |
+| ID | 内容 | 要件・受入条件 | 設計 | 確認方法 | 状態 | 結果 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-1 | 一覧の初期表示を未完了だけにする。範囲: src/inquiry/list/ | REQ-INQ-003、AC-INQ-005 | DES-INQ-004 | TDD（npm test） | done | npm test 成功（a1b2c3d） |
 ```
 
 - `状態` は `todo` / `doing` / `done` / `blocked` / `dropped`。
@@ -114,13 +115,13 @@ branch: change/CHG-0001
 ## DES-SPEC-005 設計判断記録（ADR）
 
 - 後から変えにくい判断（構成・境界・データ方式・依存ライブラリなど）を ADR として残すことを推奨する。必須ではない。
-- 案件中は `docs/spec/changes/<変更ID>/decisions/ADR-DRAFT-01-<題>.md` に案として書き、設計の承認の対象に含める。
+- 案件中は `docs/spec/changes/<変更ID>/decisions/ADR-TMP-01-<題>.md` に案として書き、設計の承認の対象に含める。
 - 設計の承認後、窓口が `docs/spec/current/design/decisions/ADR-0001-<題>.md` へ正式な番号で移し、状態を Accepted にする。移したものは書き換えず、変えるときは新しい ADR で置き換える。
 - テンプレートは `ddd-internal-design/templates/adr.md`。
 
-## 要求との対応
+## 要件との対応
 
-| 要求 | 設計 |
+| 要件 | 設計 |
 | --- | --- |
 | REQ-SPEC-001 | DES-SPEC-002（`idea.md`）。 |
 | REQ-SPEC-002 | DES-SPEC-002。 |

@@ -4,7 +4,7 @@
 
 ## 1. 全体像
 
-- 進め方: 壁打ち → 要求定義 → 外部設計 → 内部設計 → タスク分解・整合性確認 → 開発・テスト
+- 進め方: 壁打ち → 要件定義 → 外部設計 → 内部設計 → タスク分解・整合性確認 → 開発・テスト
 - 通常の入口は `sdd-orchestrator` のみ。必要な担当へ直列に委任する。
 - 初期設定は**読み取り専用**。操作ガード・隔離が未確認の環境では execute を有効にしない。
 
@@ -14,7 +14,7 @@
 | エージェント | [.github/agents/](.github/agents) | 8 |
 | スキル | [.github/skills/](.github/skills) | 15 |
 | ローカルランナー | [.github/sdd/](.github/sdd) | 1 式 |
-| 仕様（候補原本） | [docs/spec/current/](docs/spec/current) | 要求・設計 |
+| 仕様（候補原本） | [docs/spec/current/](docs/spec/current) | 要件・設計 |
 
 ## 2. 共通指示（copilot-instructions.md）
 
@@ -22,7 +22,7 @@
 
 - **保存先**: 全体仕様の候補原本 `docs/spec/current/`、変更記録 `docs/spec/changes/<change-id>/`、共有状態 `docs/scratchpad/<change-id>/`。変更ブランチの候補原本を「既定ブランチへ取り込み済み・本番反映済み」とは呼ばない。
 - **質問**: 決められない前提は質問にし、選択肢・推奨・影響・確認期限の工程を示す。後工程の質問で現在作業を止めない。回答のない事項を決定済みにしない。
-- **承認**: 工程成果物一式の版に対して記録。発注者が壁打ち・要求定義・外部設計、技術責任者が内部設計・開発完了を承認。タスク分解に新しい承認工程は作らない。
+- **承認**: 工程成果物一式の版に対して記録。発注者が壁打ち・要件定義・外部設計、技術責任者が内部設計・開発完了を承認。タスク分解に新しい承認工程は作らない。
 - **区別**: 回答・作業継続・工程承認・操作許可は別物。「続けて」を承認に変換しない。本人認証・電子署名は実装したと扱わない。
 - **書き込み**: 許可範囲と期待版を確認し、管理下のランナー経由。人の変更を消さない。競合・部分更新・結果不明は停止して復旧方法を示す。
 - **Git**: 初期化・ブランチ作成・コミット・push・PR・マージ・本番反映を自動実行しない。秘密値は記録しない。
@@ -36,7 +36,7 @@
 | --- | --- | --- | --- |
 | sdd-orchestrator | 受付・状態・回答・承認・許可・引き継ぎの窓口 | change-intake, workflow-status, workflow-resume, clarification, phase-handoff | tools: read, search, agent, vscode_askQuestions。他7担当へ委任 |
 | sdd-ideation | 壁打ち、課題・価値・制約、候補比較、範囲整理 | idea-dialogue | 前工程承認不要 |
-| sdd-requirements | 機能別要求・業務ルール・非機能・受入条件 | requirements-definition | |
+| sdd-requirements | 機能別要件・業務ルール・非機能・受入条件 | requirements-definition | |
 | sdd-external-design | UI・帳票・API・外部連携の動作と例外 | external-design | |
 | sdd-internal-design | DDD・責務・依存・データ・処理・運用・テスト方針 | ddd-internal-design | |
 | sdd-task-planner | 依存順タスク・編集範囲・検証計画・追跡表 | task-planning | tasks.json / traceability.json のみ編集。追加の人承認は要求しない |
@@ -55,12 +55,12 @@
 | | clarification | 未解決の前提・選択肢・回答の整理。現在必要な質問と後工程の質問を分離 |
 | | phase-handoff | 工程承認と次工程への引き継ぎ。成果物一式・入力版・承認・許可を分けて確認 |
 | 上流工程 | idea-dialogue | アイデア壁打ち（templates/idea.md） |
-| | requirements-definition | 要求定義（templates/feature-requirements.md） |
+| | requirements-definition | 要件定義（templates/feature-requirements.md） |
 | | external-design | 外部設計（templates/external-design.md） |
 | | ddd-internal-design | DDD 内部設計（templates/internal-design.md） |
 | 変更管理 | change-impact-analysis | 改善・修正の影響、互換性、移行、回帰、再検証・再承認の対象 |
 | | canonical-spec-update | 合意変更を候補原本と変更記録へ反映（マージはしない） |
-| | consistency-review | 要求・設計・原本・タスク・追跡表の整合性レビュー（指摘のみ） |
+| | consistency-review | 要件・設計・原本・タスク・追跡表の整合性レビュー（指摘のみ） |
 | 下流工程 | task-planning | 承認済み内部設計からタスク分解・検証計画・追跡表 |
 | | tdd-cycle | Red・Green・Refactor による開発 |
 | | verification-and-review | 受入条件への適合、検証証跡、独立レビュー、完了前提の確認 |
@@ -97,7 +97,7 @@
 ## 7. 利用の流れ
 
 1. `sdd-orchestrator` を選び「新しい仕組みを考えたい」等と依頼 → change-intake で案件登録
-2. 壁打ち → 要求定義 → 外部設計 → 内部設計：各工程で成果物一式を作り、承認者の承認を版に対して記録
+2. 壁打ち → 要件定義 → 外部設計 → 内部設計：各工程で成果物一式を作り、承認者の承認を版に対して記録
 3. タスク分解・整合性確認（追加承認なし）
 4. 開発（TDD）・検証・独立レビュー → 技術責任者が開発完了を承認
 5. 中断時は workflow-status / workflow-resume で状況確認・再開

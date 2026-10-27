@@ -2,7 +2,7 @@
 
 ## 位置付け
 
-設計入力は [要求定義書](../requirements/README.md) とする。本フォルダは本仕組み自体の設計であり、支援先アプリの業務設計ではない。2026-10-20 にライト版へ見直した。見直し前の設計（ランナー中心の厳格版）は Git の履歴（コミット 96e81d6）で参照できる。
+設計入力は [要件定義書](../requirements/README.md) とする。本フォルダは本仕組み自体の設計であり、支援先アプリの業務設計ではない。2026-10-20 にライト版へ見直した。見直し前の設計（ランナー中心の厳格版）は Git の履歴（コミット 96e81d6）で参照できる。
 
 ## 全体方針
 
@@ -40,9 +40,9 @@ flowchart LR
 | [tool-integration.md](tool-integration.md) | 環境と配置、Git の操作、検査スクリプト、安全、導入 |
 | [development-verification.md](development-verification.md) | タスク、テスト先行の実装、確認の記録、レビューと完了、受入確認計画 |
 
-## 要求との対応
+## 要件との対応
 
-| 要求 | 設計 |
+| 要件 | 設計 |
 | --- | --- |
 | REQ-COM-001 | DES-COM-001、DES-WF-001。 |
 | REQ-COM-002 | DES-WF-003（`clarification`）、DES-SPEC-003（質問の表）。 |

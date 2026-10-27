@@ -84,7 +84,7 @@ test('duplicate IDs, requirements without acceptance criteria and broken links a
 test('invalid status and task values are errors', context => {
   const root = fixture(context, {
     'docs/spec/changes/CHG-0001/status.md': status({ size: 'light', phase: 'design', state: 'working', kind: 'other', questions: '| Q-1 | ? | | someday | pending | |\n', approvals: '| design | 2026-10-20 | 他人 | docs/a.md |\n' }),
-    'docs/spec/changes/CHG-0001/tasks.md': '| ID | 内容 | 要件・受入条件 | 確認方法 | 状態 | 結果 |\n| --- | --- | --- | --- | --- | --- |\n| TASK-1 | x | AC-1 | TDD | finished | |\n'
+    'docs/spec/changes/CHG-0001/tasks.md': '| ID | 内容 | 要件・受入条件 | 設計 | 確認方法 | 状態 | 結果 |\n| --- | --- | --- | --- | --- | --- | --- |\n| TASK-1 | x | AC-1 | — | TDD | finished | |\n'
   });
   const messages = check(root, 'CHG-0001').errors.map(error => error.message).join('\n');
   for (const expected of ['phase の値が size=light に合いません', 'state の値が正しくありません', 'kind の値が正しくありません', '質問の期限が正しくありません', '質問の状態が正しくありません', '承認の工程が size=light に合いません', '承認者が approvers にありません', 'タスクの状態が正しくありません']) assert.ok(messages.includes(expected), expected);
@@ -122,7 +122,7 @@ test('due open questions are warnings and later questions are not', context => {
 test('task counts and branch mismatch appear in the summary', context => {
   const root = fixture(context, {
     'docs/spec/changes/CHG-0001/status.md': status({ phase: 'implementation', branch: 'change/other' }),
-    'docs/spec/changes/CHG-0001/tasks.md': '# タスク\n\n| ID | 内容 | 要件・受入条件 | 確認方法 | 状態 | 結果 |\n| --- | --- | --- | --- | --- | --- |\n| TASK-1 | a | AC-1 | TDD | done | ok |\n| TASK-2 | b | AC-2 | TDD | todo | |\n'
+    'docs/spec/changes/CHG-0001/tasks.md': '# タスク\n\n| ID | 内容 | 要件・受入条件 | 設計 | 確認方法 | 状態 | 結果 |\n| --- | --- | --- | --- | --- | --- | --- |\n| TASK-1 | a | AC-1 | DES-A-001 | TDD | done | ok |\n| TASK-2 | b | AC-2 | — | TDD | todo | |\n'
   });
   const summary = check(root, 'CHG-0001').summary;
   assert.deepEqual(summary.tasks, { counts: { done: 1, todo: 1 }, open: ['TASK-2'] });

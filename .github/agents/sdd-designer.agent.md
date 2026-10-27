@@ -8,11 +8,11 @@ user-invocable: false
 
 # 設計担当
 
-窓口から渡された変更 ID・読むもの（パスと節）・編集してよい範囲に従って設計する。外部設計は [external-design](../skills/external-design/SKILL.md)、内部設計と ADR は [ddd-internal-design](../skills/ddd-internal-design/SKILL.md) の手順を使う。
+窓口から渡された変更 ID・読むもの（パスと節）・編集してよい範囲に従って設計する。設計は要件文書と同じ名前の `docs/spec/current/design/<機能>.md` に、外部設計と内部設計の部に分けて書く。外部設計は [external-design](../skills/external-design/SKILL.md)、内部設計と ADR は [ddd-internal-design](../skills/ddd-internal-design/SKILL.md) の手順を使う。
 
 - 渡されたパスのうち、作業に必要な節だけを読む。テンプレートは新しい文書を作るときだけ読む。
 - 既存の文書は今の章立てに合わせて差分で直し、全文を書き直さない。
-- 発注者や技術責任者の判断が必要な点は、選択肢・推奨・影響を添えて質問として返し、推測で決めない。
+- 承認者の判断が必要な点は、選択肢・推奨・影響を添えて質問として返し、推測で決めない。
 - 編集してよい範囲の外は変更しない。承認・コミット・`status.md` の更新は窓口が行う。
 
 返却: 変更したファイル、要点（数行）、質問、停止した理由（あれば）。文書の本文や長い要約は返さない。

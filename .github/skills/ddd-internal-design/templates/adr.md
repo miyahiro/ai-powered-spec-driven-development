@@ -13,7 +13,7 @@
 
 | 段階 | 配置 | ID |
 | --- | --- | --- |
-| 案件中 | `docs/spec/changes/<change-id>/decisions/` | 仮番号 `ADR-DRAFT-01` のような案件内連番 |
+| 案件中 | `docs/spec/changes/<change-id>/decisions/` | 仮番号 `ADR-TMP-01` のような案件内連番 |
 | 昇格後 | `docs/spec/current/design/decisions/` | 通し番号 `ADR-0001`。ファイル名は `ADR-0001-<短い題>.md` |
 
 - 昇格は設計の承認の後に窓口が行う。正式番号は既存の最大番号の次を採番し、仮番号との対応を `status.md` の次の作業かメモに残す。
@@ -30,7 +30,7 @@ Proposed → Accepted / Rejected → Superseded。設計の承認（承認のコ
 
 - 状態: <Proposed | Accepted | Rejected | Superseded>
 - 起票案件: <change-id>
-- 関連: <要件 ID、DES-<FEATURE>-001、関連 ADR>
+- 関連: <要件 ID、DES-<機能>-001、関連 ADR>
 - 置換関係: <この ADR が置き換える ADR / この ADR を置き換えた ADR / なし>
 - 承認: <設計の承認のコミット。未承認なら「未承認」>
 

@@ -1,6 +1,6 @@
 # ツール・Git・検査スクリプト設計
 
-入力: [ツール要求](../requirements/tool-integration.md)、[共通要求](../requirements/common.md)。
+入力: [ツール要件](../requirements/tool-integration.md)、[共通要件](../requirements/common.md)。
 
 ## DES-TOOL-001 環境と配置
 
@@ -76,9 +76,9 @@
 
 更新も同じ手順で行う。自動の更新機構は作らない。
 
-## 要求との対応
+## 要件との対応
 
-| 要求 | 設計 |
+| 要件 | 設計 |
 | --- | --- |
 | REQ-TOOL-001 | DES-TOOL-001。 |
 | REQ-TOOL-002 | DES-TOOL-002。 |

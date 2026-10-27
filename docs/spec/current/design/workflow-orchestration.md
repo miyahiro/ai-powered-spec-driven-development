@@ -1,6 +1,6 @@
 # ワークフロー・エージェント・スキル設計
 
-入力: [ワークフロー要求](../requirements/workflow-orchestration.md)。共通方針: [README.md](README.md)。
+入力: [ワークフロー要件](../requirements/workflow-orchestration.md)。共通方針: [README.md](README.md)。
 
 ## DES-WF-001 対話と工程
 
@@ -105,9 +105,9 @@ approve(<gate>): <変更ID> <題名>
 - 中断: `state` を `paused` にし、「次の作業」に再開する地点を書く。作業中のコードがあれば `chg(<変更ID>): 中断時点` としてコミットするかを聞く。
 - 再開: 検査スクリプトの要約で、ブランチ、再承認が必要な工程、期限の来た質問を確かめる。不一致がなければ `state` を戻して続ける。
 
-## 要求との対応
+## 要件との対応
 
-| 要求 | 設計 |
+| 要件 | 設計 |
 | --- | --- |
 | REQ-WF-001 | DES-WF-003 `change-intake`、DES-SPEC-003。 |
 | REQ-WF-002 | DES-TOOL-002。 |

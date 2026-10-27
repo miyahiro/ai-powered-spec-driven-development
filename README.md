@@ -22,4 +22,4 @@ node .github/sdd/check.mjs            # 仕様と案件の検査
 node .github/sdd/check.mjs CHG-0001   # 案件の状況の要約
 ```
 
-仕様: [要求定義](docs/spec/current/requirements/README.md)、[設計](docs/spec/current/design/README.md)。
+仕様: [要件定義](docs/spec/current/requirements/README.md)、[設計](docs/spec/current/design/README.md)。
