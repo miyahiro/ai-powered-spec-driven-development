@@ -39,5 +39,5 @@ branch: change/CHG-0002
 
 ## 次の作業
 
-- TASK-9 の手動の確認: `.github/agents` などを消した後のこのリポジトリで、`sdd-orchestrator` が表示され、依頼の初めに `common-rules.md` が読まれることを利用者に確かめてもらう。
-- その後、`sdd-reviewer` のレビューを受け、完了の承認を求める。`idea.md` のリンクを直したため、要件（requirements）の再承認も一緒に求める。
+- 独立レビュー: `sdd-reviewer` に、実装（`plugins/sdd/`、`test/`、`.github/plugin/marketplace.json`）と受入条件（AC-COM-004・009・010、AC-TOOL-005）の照合を頼む。
+- その後、完了の承認を求める。`idea.md` のリンクを直したため、要件（requirements）の再承認も一緒に求める。
