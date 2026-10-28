@@ -1,0 +1,13 @@
+{
+  "name": "spec-driven-development",
+  "owner": { "name": "宮下 洋" },
+  "metadata": { "description": "スペック駆動開発のプラグイン" },
+  "plugins": [
+    {
+      "name": "sdd",
+      "source": "./plugins/sdd",
+      "description": "スペック駆動開発のエージェントとスキル（ライト版）",
+      "version": "0.3.0"
+    }
+  ]
+}
