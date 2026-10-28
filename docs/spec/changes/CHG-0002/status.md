@@ -39,4 +39,4 @@ branch: change/CHG-0002
 
 ## 次の作業
 
-- 実装: [tasks.md](tasks.md) の TASK-1 から `sdd-implementer` が順に進める。TASK-7 と TASK-9 の VS Code での確認は利用者が行う。
+- TASK-7（利用者の手での確認）: 別の空の workspace に `plugins/sdd` を登録し、`tasks.md` の TASK-7 の (1)〜(6) を確かめて結果を伝えてもらう。その後 TASK-8・TASK-9 を進める。
