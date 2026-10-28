@@ -4,7 +4,7 @@
 
 ## 目的と課題
 
-- 事実: 今の導入は `.github/instructions/`・`.github/agents/`・`.github/skills/`・`.github/sdd/` を導入先へコピーする方法で、更新も差分を確かめてのコピーになる（[導入・管理ガイド](../../../../.github/sdd/README.md)）。
+- 事実: 今の導入は `.github/instructions/`・`.github/agents/`・`.github/skills/`・`.github/sdd/` を導入先へコピーする方法で、更新も差分を確かめてのコピーになる（当時の導入・管理ガイド `.github/sdd/README.md`）。
 - 人の意向: エージェントとスキルをプラグインにまとめ、インストールで導入・更新できるようにしたい。
 
 ## 対象者・利用場面
@@ -47,7 +47,7 @@
 ## 前提・制約
 
 - 確認済み: VS Code はプラグインの部品として、スキル・MCP・エージェント・hooks・コマンドを読み込む。instructions は部品にない。`${PLUGIN_ROOT}` が展開されるのは hooks と MCP の設定で、スキル・エージェントの本文での展開は文書に書かれていない（上の VS Code の文書）。
-- 確認済み: `check.mjs` は、スクリプトの場所から2つ上を workspace として検査している（[check.mjs](../../../../.github/sdd/check.mjs) の末尾）。呼び出しは1つのエージェントと5つのスキルにある。
+- 確認済み: `check.mjs` は、スクリプトの場所から2つ上を workspace として検査している（当時の `.github/sdd/check.mjs` の末尾）。呼び出しは1つのエージェントと5つのスキルにある。
 - 仮説・未確認: プラグインのエージェントで `tools`・`agents`・`user-invocable` が今と同じように効くこと。スキルの中のスクリプトを、スキルからの相対パスで AI が実行できること。
 - 品質面で気になること: エージェント・スキルの名前が、プラグイン名で修飾されて表示されるか（`sdd-orchestrator` を選ぶ操作が変わるか）。プラグインは Preview の機能で、`chat.plugins.enabled` が必要。
 

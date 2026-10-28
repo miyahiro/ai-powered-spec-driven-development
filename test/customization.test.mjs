@@ -118,3 +118,9 @@ test('links inside the plugin are not broken', () => {
 test('this repository passes its own check without errors', () => {
   assert.deepEqual(check(workspace).errors, []);
 });
+
+test('agents, skills and common rules live only in the plugin', () => {
+  for (const folder of ['.github/agents', '.github/skills', '.github/instructions', '.github/sdd']) {
+    assert.ok(!existsSync(resolve(workspace, folder)), `${folder}: workspace copies take precedence over the plugin`);
+  }
+});
