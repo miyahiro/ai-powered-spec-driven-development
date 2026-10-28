@@ -4,10 +4,10 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import * as checker from '../plugins/sdd/skills/spec-check/scripts/check.mjs';
+import * as checker from '../plugins/sdd/skills/sdd-spec-check/scripts/check.mjs';
 
 const { check, redact } = checker;
-const script = join(import.meta.dirname, '..', 'plugins/sdd/skills/spec-check/scripts/check.mjs');
+const script = join(import.meta.dirname, '..', 'plugins/sdd/skills/sdd-spec-check/scripts/check.mjs');
 
 const requirements = `# 要求
 

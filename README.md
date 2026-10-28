@@ -21,8 +21,8 @@ GitHub Copilot / VS Code 向けの、スペック駆動開発のエージェン�
 
 ```sh
 npm test                                                        # 検査スクリプトとプラグインの構成のテスト
-node plugins/sdd/skills/spec-check/scripts/check.mjs            # 仕様と案件の検査
-node plugins/sdd/skills/spec-check/scripts/check.mjs CHG-0001   # 案件の状況の要約
+node plugins/sdd/skills/sdd-spec-check/scripts/check.mjs            # 仕様と案件の検査
+node plugins/sdd/skills/sdd-spec-check/scripts/check.mjs CHG-0001   # 案件の状況の要約
 ```
 
 仕様: [要件定義](docs/spec/current/requirements/README.md)、[設計](docs/spec/current/design/README.md)。

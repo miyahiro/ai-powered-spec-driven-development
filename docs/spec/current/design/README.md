@@ -45,7 +45,7 @@ flowchart LR
 | 要件 | 設計 |
 | --- | --- |
 | REQ-COM-001 | DES-COM-001、DES-WF-001。 |
-| REQ-COM-002 | DES-WF-003（`clarification`）、DES-SPEC-003（質問の表）。 |
+| REQ-COM-002 | DES-WF-003（`sdd-clarification`）、DES-SPEC-003（質問の表）。 |
 | REQ-COM-003 | DES-WF-004。 |
 | REQ-COM-004 | DES-SPEC-002。 |
 | REQ-COM-005 | DES-COM-006、DES-TOOL-005。 |

@@ -15,7 +15,7 @@ GitHub Copilot / VS Code で、アイデアから実装・検証までを、AI �
 | `common-rules.md` | 全エージェントが作業の前に読む共通ルール |
 | `agents/` | 4つのエージェント（窓口・設計・実装・レビュー） |
 | `skills/` | 14の手順（受付、状況確認、質問、深掘り、承認、壁打ち、要件、外部設計、内部設計、影響の調査、タスク分解、TDD、レビュー、検査）とテンプレート |
-| `skills/spec-check/scripts/check.mjs` | 検査スクリプト（読み取りだけ、依存なし） |
+| `skills/sdd-spec-check/scripts/check.mjs` | 検査スクリプト（読み取りだけ、依存なし） |
 
 状態の管理に専用のランナーやデータベースは使いません。案件の状態は Markdown 1枚（`status.md`）に書き、承認は Git のローカルのコミットとして残します。操作の安全は、Copilot / VS Code の標準の確認（ターミナルの実行、ファイルの編集）に任せます。
 
@@ -30,7 +30,7 @@ GitHub Copilot / VS Code で、アイデアから実装・検証までを、AI �
 
 導入で workspace のファイルは変わりません。`.github/copilot-instructions.md` は、導入先のプロジェクトの基本ルール（応答の言語、コーディング方針など）を書く場所として、そのまま使ってください。
 
-workspace の `.github/agents/`・`.github/skills/` に、このプラグインと同じ名前のエージェント・スキル（`sdd-orchestrator`、`review` など）があると、そちらがプラグインより優先されます。同じ名前のエージェント・スキルを workspace に置かないでください。
+workspace の `.github/agents/`・`.github/skills/` に、このプラグインと同じ名前のエージェント・スキル（`sdd-orchestrator`、`sdd-review` など）があると、そちらがプラグインより優先されます。同じ名前のエージェント・スキルを workspace に置かないでください。
 
 これで使い始められます。利用者には [ユーザーガイド](user_guide.md) を案内してください。
 
@@ -51,7 +51,7 @@ workspace の `.github/agents/`・`.github/skills/` に、このプラグイン�
 普段は `sdd-orchestrator` に「検査して」「CHG-0001 の状況を教えて」と頼みます。CI などで人が直接実行するときは、workspace のルートで、インストール先のスクリプトを実行します。検査されるのは、実行したフォルダーです。
 
 ```sh
-SDD_CHECK=~/.copilot/installed-plugins/spec-driven-development/sdd/skills/spec-check/scripts/check.mjs
+SDD_CHECK=~/.copilot/installed-plugins/spec-driven-development/sdd/skills/sdd-spec-check/scripts/check.mjs
 node "$SDD_CHECK"                  # 全体の検査
 node "$SDD_CHECK" CHG-0001         # 検査と、案件の状況の要約
 node "$SDD_CHECK" CHG-0001 --json
@@ -73,7 +73,7 @@ node "$SDD_CHECK" CHG-0001 --json
 - ファイルは書き換えません。Git は `log`・`diff`・`ls-files`・`branch` の読み取りだけを使います。
 - 出力に文書の本文は出さず、token や鍵らしい文字列は伏せます。
 
-`status.md` と `tasks.md` の書き方は、テンプレート（[status.md](skills/change-intake/templates/status.md)、[tasks.md](skills/task-planning/templates/tasks.md)）にあります。主な値は次のとおりです。
+`status.md` と `tasks.md` の書き方は、テンプレート（[status.md](skills/sdd-change-intake/templates/status.md)、[tasks.md](skills/sdd-task-planning/templates/tasks.md)）にあります。主な値は次のとおりです。
 
 | 項目 | 値 |
 | --- | --- |

@@ -222,19 +222,19 @@ Q-1 は推奨どおり切り替えボタンにします。
 
 | 直接指定 | 使う場面 |
 | --- | --- |
-| [/change-intake](skills/change-intake/SKILL.md) | 受付 |
-| [/workflow-status](skills/workflow-status/SKILL.md) | 状況確認・記録の一覧・再開 |
-| [/clarification](skills/clarification/SKILL.md) | 質問と回答 |
-| [/grill-me](skills/grill-me/SKILL.md) | 承認の前の深掘り |
-| [/phase-approval](skills/phase-approval/SKILL.md) | 承認とコミット |
-| [/idea-dialogue](skills/idea-dialogue/SKILL.md) | 壁打ち |
-| [/requirements-definition](skills/requirements-definition/SKILL.md) | 要件・軽量の要点 |
-| [/external-design](skills/external-design/SKILL.md) | 外部設計 |
-| [/ddd-internal-design](skills/ddd-internal-design/SKILL.md) | 内部設計・ADR |
-| [/change-impact-analysis](skills/change-impact-analysis/SKILL.md) | 変更の影響の調査 |
-| [/task-planning](skills/task-planning/SKILL.md) | タスク分解 |
-| [/tdd-cycle](skills/tdd-cycle/SKILL.md) | テスト先行の実装 |
-| [/review](skills/review/SKILL.md) | レビュー |
-| [/spec-check](skills/spec-check/SKILL.md) | 仕様と案件の検査・状況の要約 |
+| [/sdd-change-intake](skills/sdd-change-intake/SKILL.md) | 受付 |
+| [/sdd-workflow-status](skills/sdd-workflow-status/SKILL.md) | 状況確認・記録の一覧・再開 |
+| [/sdd-clarification](skills/sdd-clarification/SKILL.md) | 質問と回答 |
+| [/sdd-grill-me](skills/sdd-grill-me/SKILL.md) | 承認の前の深掘り |
+| [/sdd-phase-approval](skills/sdd-phase-approval/SKILL.md) | 承認とコミット |
+| [/sdd-idea-dialogue](skills/sdd-idea-dialogue/SKILL.md) | 壁打ち |
+| [/sdd-requirements-definition](skills/sdd-requirements-definition/SKILL.md) | 要件・軽量の要点 |
+| [/sdd-external-design](skills/sdd-external-design/SKILL.md) | 外部設計 |
+| [/sdd-ddd-internal-design](skills/sdd-ddd-internal-design/SKILL.md) | 内部設計・ADR |
+| [/sdd-change-impact-analysis](skills/sdd-change-impact-analysis/SKILL.md) | 変更の影響の調査 |
+| [/sdd-task-planning](skills/sdd-task-planning/SKILL.md) | タスク分解 |
+| [/sdd-tdd-cycle](skills/sdd-tdd-cycle/SKILL.md) | テスト先行の実装 |
+| [/sdd-review](skills/sdd-review/SKILL.md) | レビュー |
+| [/sdd-spec-check](skills/sdd-spec-check/SKILL.md) | 仕様と案件の検査・状況の要約 |
 
 壁打ち・質問整理・深掘り・状況確認・検査・レビューは、承認がなくても使えます。スキルを直接指定したときは共通ルールが読まれず、そのスキルの手順に書いた範囲だけが守られます。普段は `sdd-orchestrator` から使ってください。

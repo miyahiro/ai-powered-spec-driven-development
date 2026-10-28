@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { check, checkLinks } from '../plugins/sdd/skills/spec-check/scripts/check.mjs';
+import { check, checkLinks } from '../plugins/sdd/skills/sdd-spec-check/scripts/check.mjs';
 
 const workspace = resolve(import.meta.dirname, '..');
 const plugin = resolve(workspace, 'plugins/sdd');
@@ -71,12 +71,13 @@ test('four agents have explicit roles, least privilege and read the common rules
 
 test('fourteen discoverable skills have matching names and actionable procedures', () => {
   const folder = resolve(plugin, 'skills');
-  const expected = ['change-intake', 'workflow-status', 'clarification', 'grill-me', 'phase-approval', 'idea-dialogue', 'requirements-definition', 'external-design', 'ddd-internal-design', 'change-impact-analysis', 'task-planning', 'tdd-cycle', 'review', 'spec-check'];
+  const expected = ['change-intake', 'workflow-status', 'clarification', 'grill-me', 'phase-approval', 'idea-dialogue', 'requirements-definition', 'external-design', 'ddd-internal-design', 'change-impact-analysis', 'task-planning', 'tdd-cycle', 'review', 'spec-check'].map(name => `sdd-${name}`);
   assert.deepEqual(list(folder).sort(), [...expected].sort());
   for (const name of expected) {
     const path = resolve(folder, name, 'SKILL.md');
     const data = frontmatter(path);
     assert.equal(data.name, name);
+    assert.ok(data.name.startsWith('sdd-'), `${name}: prefixed so it does not collide with other skills`);
     assert.ok(data.description.length > 20 && data.description.length <= 1024);
     assert.equal(data['user-invocable'], 'true');
     const body = read(path);
@@ -84,22 +85,22 @@ test('fourteen discoverable skills have matching names and actionable procedures
   }
 });
 
-test('only spec-check knows where the check script is', () => {
-  const skill = resolve(plugin, 'skills/spec-check');
-  assert.ok(existsSync(resolve(skill, 'scripts/check.mjs')), 'Missing: spec-check/scripts/check.mjs');
+test('only sdd-spec-check knows where the check script is', () => {
+  const skill = resolve(plugin, 'skills/sdd-spec-check');
+  assert.ok(existsSync(resolve(skill, 'scripts/check.mjs')), 'Missing: sdd-spec-check/scripts/check.mjs');
   assert.ok(read(resolve(skill, 'SKILL.md')).includes('scripts/check.mjs'));
   const guides = ['README.md', 'user_guide.md'].map(name => resolve(plugin, name));
   for (const path of markdownFiles(plugin)) {
     if (path.startsWith(skill) || guides.includes(path)) continue;
-    assert.ok(!read(path).includes('check.mjs'), `${path}: refer to spec-check instead of the script path`);
+    assert.ok(!read(path).includes('check.mjs'), `${path}: refer to sdd-spec-check instead of the script path`);
   }
 });
 
 test('the common rules forbid remote Git operations and broad staging', () => {
   const text = read(resolve(plugin, 'common-rules.md'));
   assert.ok(!text.startsWith('---'), 'common rules are a plain file, not instructions');
-  for (const phrase of ['push', 'git add -A', 'approve(<工程>)', 'spec-check']) assert.ok(text.includes(phrase), phrase);
-  assert.match(read(resolve(plugin, 'skills/phase-approval/SKILL.md')), /git add -- <対象のパス> docs\/spec\/changes\/<ID>\/status\.md/);
+  for (const phrase of ['push', 'git add -A', 'approve(<工程>)', 'sdd-spec-check']) assert.ok(text.includes(phrase), phrase);
+  assert.match(read(resolve(plugin, 'skills/sdd-phase-approval/SKILL.md')), /git add -- <対象のパス> docs\/spec\/changes\/<ID>\/status\.md/);
 });
 
 test('project-wide instructions are left to the workspace', () => {

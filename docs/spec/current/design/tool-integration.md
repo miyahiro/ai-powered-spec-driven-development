@@ -30,8 +30,8 @@ plugins/
       sdd-designer.agent.md         # 設計
       sdd-implementer.agent.md      # 実装
       sdd-reviewer.agent.md         # レビュー
-    skills/<name>/SKILL.md          # 14の手順（必要なものは templates/ を持つ）
-    skills/spec-check/scripts/
+    skills/sdd-<name>/SKILL.md      # 14の手順（必要なものは templates/ を持つ）
+    skills/sdd-spec-check/scripts/
       check.mjs                     # 検査スクリプト
 test/                               # 検査スクリプトとプラグインの構成のテスト（配布しない）
 package.json                        # テストの実行用（依存なし、配布しない）
@@ -42,7 +42,9 @@ package.json                        # テストの実行用（依存なし、配
 
 共通ルールは、プラグインの部品に instructions がないため、`plugins/sdd/common-rules.md` の1つのファイルに置く。4つのエージェントは本文の冒頭に、共通ルールへの相対リンク（`../common-rules.md`）を付けて「作業の前に共通ルールを読む」と書く。リンク先が自動で読み込まれなくても、read で読めるようにするため。共通ルールの本文はこのファイルにだけ書き、エージェントやスキルに写さない。スキルを直接呼んだときは共通ルールを読まず、各スキルの手順に書いた範囲で守る（REQ-COM-006）。導入先の `.github/copilot-instructions.md` は、導入先が自分の基本ルールを書くファイルで、プラグインは触れない。
 
-検査スクリプトは、検査の手順を持つ専用のスキル `spec-check` の中（`scripts/check.mjs`）に置く。スキル・エージェントの本文では `${PLUGIN_ROOT}` などの変数が展開されないため、他のスキルとエージェントはスクリプトのパスを書かず、`spec-check` の `SKILL.md` への相対リンク（`../skills/spec-check/SKILL.md` など）で参照する。`spec-check` は、自分の `SKILL.md` と同じフォルダーの `scripts/check.mjs` を、workspace のルートで実行する。
+検査スクリプトは、検査の手順を持つ専用のスキル `sdd-spec-check` の中（`scripts/check.mjs`）に置く。スキル・エージェントの本文では `${PLUGIN_ROOT}` などの変数が展開されないため、他のスキルとエージェントはスクリプトのパスを書かず、`sdd-spec-check` の `SKILL.md` への相対リンク（`../skills/sdd-spec-check/SKILL.md` など）で参照する。`sdd-spec-check` は、自分の `SKILL.md` と同じフォルダーの `scripts/check.mjs` を、workspace のルートで実行する。
+
+エージェントとスキルの名前（スキルはフォルダー名と `SKILL.md` の `name`）は、先頭に `sdd-` を付ける（`sdd-orchestrator`、`sdd-review` など）。`review` のようなよくある名前は、エディターに最初からあるコマンドや他のプラグインのスキルと同じ名前になりやすく、どれが呼ばれるか分からなくなるため。利用者の呼びかけの言葉（「grill-me して」など）は名前ではないので、付けない。
 
 workspace の `.github/agents/`・`.github/skills/` に同じ名前のエージェント・スキルがあると、プラグインより優先される。このリポジトリには、プラグインの外にエージェント・スキルを置かない。
 
@@ -61,7 +63,7 @@ workspace の `.github/agents/`・`.github/skills/` に同じ名前のエージ�
 
 ## DES-TOOL-003 検査スクリプト
 
-`spec-check` スキルが、workspace のルートで `node <spec-check のフォルダー>/scripts/check.mjs [変更ID] [--json]` を実行する。検査するのは実行したフォルダー（`process.cwd()`）で、スクリプトの置き場所には依存しない。人は、インストール先のスクリプト（`~/.copilot/installed-plugins/<マーケットプレイス>/sdd/skills/spec-check/scripts/check.mjs`）を workspace のルートで直接実行してもよい。ファイルを書き換えず、Git は読み取りのコマンド（`log`・`diff`・`ls-files`・`branch`）だけを使う。
+`sdd-spec-check` スキルが、workspace のルートで `node <sdd-spec-check のフォルダー>/scripts/check.mjs [変更ID] [--json]` を実行する。検査するのは実行したフォルダー（`process.cwd()`）で、スクリプトの置き場所には依存しない。人は、インストール先のスクリプト（`~/.copilot/installed-plugins/<マーケットプレイス>/sdd/skills/sdd-spec-check/scripts/check.mjs`）を workspace のルートで直接実行してもよい。ファイルを書き換えず、Git は読み取りのコマンド（`log`・`diff`・`ls-files`・`branch`）だけを使う。
 
 | 検査 | 対象 | 種別 |
 | --- | --- | --- |
@@ -101,9 +103,9 @@ workspace の `.github/agents/`・`.github/skills/` に同じ名前のエージ�
 - 開発する人は、`chat.pluginLocations` に `plugins/sdd` を登録し、このリポジトリでもプラグインを使って開発する。リポジトリにはプラグインの外のエージェント・スキルを置かないため、登録したプラグインがそのまま使われる。
 - 今の配置からの移し方: プラグインは `.github/` の今のファイルを残したまま `plugins/sdd/` に写して作る。今のファイルが優先されて隠れるため、プラグインの動作は別の空の workspace に `plugins/sdd` を登録して確かめる。確かめた後、最後のタスクで `.github/agents/`・`.github/skills/`・`.github/instructions/`・`.github/sdd/` を消す。
 - テストはリポジトリのルートで `npm test` を実行する（依存なし）。`test/check.test.mjs` は検査スクリプトを、`test/customization.test.mjs` はプラグインの構成を確かめる。
-- 構成のテストで確かめること: `plugin.json` の `name` と、マーケットプレイスの項目の `source`・`version` の一致。4つのエージェントの名前・ツール・`user-invocable`・呼べる担当と、本文の冒頭の共通ルールへのリンク。14のスキルの名前と手順の形。共通ルールの必須の規則（push をしない、`git add -A` を使わない、承認のコミットの形）が `common-rules.md` にあること。`spec-check` 以外にスクリプトのパスが書かれていないこと。プラグインの中の Markdown のリンク切れ（検査スクリプトのリンクの検査の関数を、対象のフォルダーを変えて使う）。このリポジトリが自分の検査でエラーにならないこと。
+- 構成のテストで確かめること: `plugin.json` の `name` と、マーケットプレイスの項目の `source`・`version` の一致。4つのエージェントの名前・ツール・`user-invocable`・呼べる担当と、本文の冒頭の共通ルールへのリンク。14のスキルの名前（先頭が `sdd-`）と手順の形。共通ルールの必須の規則（push をしない、`git add -A` を使わない、承認のコミットの形）が `common-rules.md` にあること。`sdd-spec-check` 以外にスクリプトのパスが書かれていないこと。プラグインの中の Markdown のリンク切れ（検査スクリプトのリンクの検査の関数を、対象のフォルダーを変えて使う）。このリポジトリが自分の検査でエラーにならないこと。
 - 検査スクリプトは、リンクの検査の関数を対象のフォルダーを引数で受け取る形にしてテストから使えるようにする。導入先での検査の対象（`docs/` と `.github/`）は変えない。
-- VS Code での確認（エージェント・スキルが表示される、`tools`・`agents`・`user-invocable` が効く、共通ルールが読まれる、`spec-check` のスクリプトが相対パスで動く）は、手順と結果をタスク一覧に残す。
+- VS Code での確認（エージェント・スキルが表示される、`tools`・`agents`・`user-invocable` が効く、共通ルールが読まれる、`sdd-spec-check` のスクリプトが相対パスで動く）は、手順と結果をタスク一覧に残す。
 
 ## 要件との対応
 
@@ -113,7 +115,7 @@ workspace の `.github/agents/`・`.github/skills/` に同じ名前のエージ�
 | REQ-TOOL-002 | DES-TOOL-002。 |
 | REQ-TOOL-003 | DES-TOOL-004。 |
 | REQ-TOOL-004 | DES-TOOL-004、DES-COM-007。 |
-| REQ-TOOL-005 | DES-TOOL-001（`spec-check` の配置）、DES-TOOL-003。 |
+| REQ-TOOL-005 | DES-TOOL-001（`sdd-spec-check` の配置）、DES-TOOL-003。 |
 | NFR-TOOL-001 | DES-TOOL-003。 |
 | NFR-TOOL-002 | DES-SPEC-003、DES-TOOL-003。 |
 | REQ-COM-005 | DES-TOOL-001、DES-TOOL-005。 |

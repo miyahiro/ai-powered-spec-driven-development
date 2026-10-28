@@ -42,7 +42,7 @@ docs/
 
 ## DES-SPEC-003 状態ファイル（status.md）
 
-案件の状態は `docs/spec/changes/<変更ID>/status.md` 1枚に書く。人が読み書きでき、検査スクリプトが形式を確かめる。テンプレートは `change-intake/templates/status.md`。
+案件の状態は `docs/spec/changes/<変更ID>/status.md` 1枚に書く。人が読み書きでき、検査スクリプトが形式を確かめる。テンプレートは `sdd-change-intake/templates/status.md`。
 
 ```markdown
 ---
@@ -100,7 +100,7 @@ branch: change/CHG-0001
 
 ## DES-SPEC-004 タスク一覧（tasks.md）
 
-`docs/spec/changes/<変更ID>/tasks.md` に表で書く。テンプレートは `task-planning/templates/tasks.md`。
+`docs/spec/changes/<変更ID>/tasks.md` に表で書く。テンプレートは `sdd-task-planning/templates/tasks.md`。
 
 ```markdown
 | ID | 内容 | 要件・受入条件 | 設計 | 確認方法 | 状態 | 結果 |
@@ -117,7 +117,7 @@ branch: change/CHG-0001
 - 後から変えにくい判断（構成・境界・データ方式・依存ライブラリなど）を ADR として残すことを推奨する。必須ではない。
 - 案件中は `docs/spec/changes/<変更ID>/decisions/ADR-TMP-01-<題>.md` に案として書き、設計の承認の対象に含める。
 - 設計の承認後、窓口が `docs/spec/current/design/decisions/ADR-0001-<題>.md` へ正式な番号で移し、状態を Accepted にする。移したものは書き換えず、変えるときは新しい ADR で置き換える。
-- テンプレートは `ddd-internal-design/templates/adr.md`。
+- テンプレートは `sdd-ddd-internal-design/templates/adr.md`。
 
 ## 要件との対応
 
@@ -131,7 +131,7 @@ branch: change/CHG-0001
 | REQ-SPEC-006 | DES-SPEC-002。 |
 | REQ-SPEC-007 | DES-SPEC-005。 |
 | REQ-SPEC-008 | DES-SPEC-001。 |
-| REQ-SPEC-009 | DES-WF-003（`change-impact-analysis`）、DES-SPEC-003（理由の記録）。 |
+| REQ-SPEC-009 | DES-WF-003（`sdd-change-impact-analysis`）、DES-SPEC-003（理由の記録）。 |
 | REQ-SPEC-010 | DES-TOOL-003。 |
 | NFR-SPEC-001 | DES-SPEC-001。 |
 | NFR-SPEC-002 | DES-SPEC-001、DES-SPEC-002。 |
