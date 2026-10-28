@@ -36,6 +36,7 @@ branch: change/CHG-0002
 | --- | --- | --- | --- |
 | requirements | 2026-10-28 | 宮下 洋 | docs/spec/current/requirements/common.md, docs/spec/current/requirements/tool-integration.md, docs/spec/current/requirements/README.md, docs/spec/changes/CHG-0002/idea.md |
 | design | 2026-10-28 | 宮下 洋 | docs/spec/current/design/tool-integration.md, docs/spec/current/design/README.md, docs/spec/current/design/workflow-orchestration.md, docs/spec/current/design/development-verification.md |
+| requirements | 2026-10-28 | 宮下 洋 | docs/spec/current/requirements/common.md, docs/spec/current/requirements/tool-integration.md, docs/spec/current/requirements/README.md, docs/spec/changes/CHG-0002/idea.md |
 
 ## 次の作業
 
