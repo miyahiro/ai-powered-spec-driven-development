@@ -30,7 +30,7 @@ plugins/
       sdd-designer.agent.md         # 設計
       sdd-implementer.agent.md      # 実装
       sdd-reviewer.agent.md         # レビュー
-    skills/sdd-<name>/SKILL.md      # 14の手順（必要なものは templates/ を持つ）
+    skills/<name>/SKILL.md          # 14の手順（name は sdd- で始まる。必要なものは templates/ を持つ）
     skills/sdd-spec-check/scripts/
       check.mjs                     # 検査スクリプト
 test/                               # 検査スクリプトとプラグインの構成のテスト（配布しない）

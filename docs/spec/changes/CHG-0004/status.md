@@ -29,6 +29,7 @@ branch:
 | --- | --- | --- | --- |
 | outline | 2026-10-28 | 宮下 洋 | docs/spec/changes/CHG-0004/outline.md |
 | completion | 2026-10-28 | 宮下 洋 | plugins/sdd, test, README.md, package.json, .github/plugin/marketplace.json, docs/spec/current/design, docs/spec/changes/CHG-0004/tasks.md |
+| completion | 2026-10-28 | 宮下 洋 | docs/spec/current/design/tool-integration.md, docs/spec/changes/CHG-0004/tasks.md |
 
 ## 次の作業
 
