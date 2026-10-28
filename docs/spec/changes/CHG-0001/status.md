@@ -3,8 +3,8 @@ id: CHG-0001
 title: SDD の共通ルールを専用の instructions に移す
 kind: enhancement
 size: light
-phase: implementation
-state: active
+phase: done
+state: done
 approvers: 宮下 洋
 branch:
 ---
@@ -27,7 +27,8 @@ branch:
 | 工程 | 日時 | 承認者 | 対象 |
 | --- | --- | --- | --- |
 | outline | 2026-10-27 | 宮下 洋 | docs/spec/current/requirements/common.md, docs/spec/changes/CHG-0001/outline.md |
+| completion | 2026-10-28 | 宮下 洋 | .github/instructions/sdd.instructions.md, .github/copilot-instructions.md, .github/sdd/README.md, .github/sdd/test/customization.test.mjs, docs/spec/current/design/tool-integration.md, spec-driven-dev-summary.md, docs/spec/changes/CHG-0001/tasks.md |
 
 ## 次の作業
 
-- 完了の承認: TASK-1〜5 は done。読み込まれ方（`applyTo: "**"`）は利用者が VS Code で確かめる。必要なら `sdd-reviewer` のレビューを受けてから、`phase-approval` で完了の承認を求める（ブランチは作らず `main` で進める。利用者の判断）。
+- なし（完了）。`main` で進めたため、push は人が行う。
