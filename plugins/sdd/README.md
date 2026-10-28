@@ -96,7 +96,7 @@ node "$SDD_CHECK" CHG-0001 --json
 
 プラグインのリポジトリでは、`plugins/sdd/` がプラグインそのもので、`.github/plugin/marketplace.json` がマーケットプレイスの定義です。
 
-1. VS Code の設定の `chat.pluginLocations` に、`plugins/sdd` を登録します（`true` で有効）。リポジトリにはプラグインの外のエージェント・スキルを置かないので、登録したプラグインがそのまま使われます。
+1. VS Code のユーザーの設定（リモートでは Remote の設定）の `chat.pluginLocations` に、`plugins/sdd` の絶対パスを登録します（`true` で有効）。workspace の設定（`.vscode/settings.json`）には書けません。リポジトリにはプラグインの外のエージェント・スキルを置かないので、登録したプラグインがそのまま使われます。
 2. リポジトリのルートで `npm test` を実行し、検査スクリプトとプラグインの構成（エージェント・スキル・共通ルールの配置と名前、版の一致、リンク切れ）を確かめます。依存のインストールは不要です。
 3. 配布する変更では、`plugin.json` とマーケットプレイスの項目の `version` を同じ値に上げます。
 

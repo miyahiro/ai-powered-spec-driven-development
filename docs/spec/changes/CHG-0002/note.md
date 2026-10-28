@@ -10,3 +10,6 @@
 - リポジトリに LICENSE ファイルがない。`plugin.json` の `license` は空けてある（設計 DES-TOOL-001 は書く項目に挙げている）。
 - テストはリポジトリのルートで `npm test`（`test/`）、検査は `node plugins/sdd/skills/spec-check/scripts/check.mjs CHG-0002`。TASK-9 までは `npm test --prefix .github/sdd` も通る状態を保つ。
 - インストール先のパス `~/.copilot/installed-plugins/<マーケットプレイス>/sdd/` は VS Code の文書の記述から書いたもので、実物は未確認（`<マーケットプレイス>` が `marketplace.json` の `name` になるかも未確認）。TASK-7 で確かめてガイドを直す。
+- `chat.pluginLocations` は workspace の設定（`.vscode/settings.json`）には書けず、ユーザー（リモート）の設定に絶対パスで書く（TASK-7 で利用者が確認）。
+- TASK-7 の試行はこのリポジトリで行われ、AI は `spec-check` のスクリプトを workspace からの相対パス（`plugins/sdd/...`）で実行した。プラグインのフォルダーが workspace の外にあるときに、`SKILL.md` のフォルダーから絶対パスを作って実行できるかは未確認。
+- 変更 ID を付けずに検査すると、完了した CHG-0001 に「承認後に対象が変わっています（再承認が必要）」の警告が出る（`common.md`・`tool-integration.md` などを CHG-0002 で直したため。80acce8 以降）。検査スクリプトは完了した案件も承認後の変更を調べる。変更 ID を付けた実行では、その案件の警告だけが出るので気づきにくい。

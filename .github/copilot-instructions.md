@@ -5,4 +5,4 @@
 - 不要な分岐を作らない。起こりえない場合の防御的な分岐、使われない引数・設定、将来のための抽象化を足さない。
 - 既存のコードの書き方（命名、コメントの量、標準モジュールだけを使うこと）に合わせる。
 
-スペック駆動開発の共通ルールは [sdd.instructions.md](instructions/sdd.instructions.md) にある。
+スペック駆動開発の共通ルールは、プラグインの [common-rules.md](../plugins/sdd/common-rules.md) にある。
