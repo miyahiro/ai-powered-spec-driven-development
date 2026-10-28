@@ -3,8 +3,8 @@ id: CHG-0002
 title: エージェントとスキルをプラグインとして配布する
 kind: enhancement
 size: standard
-phase: implementation
-state: active
+phase: done
+state: done
 approvers: 宮下 洋
 branch: change/CHG-0002
 ---
@@ -37,8 +37,8 @@ branch: change/CHG-0002
 | requirements | 2026-10-28 | 宮下 洋 | docs/spec/current/requirements/common.md, docs/spec/current/requirements/tool-integration.md, docs/spec/current/requirements/README.md, docs/spec/changes/CHG-0002/idea.md |
 | design | 2026-10-28 | 宮下 洋 | docs/spec/current/design/tool-integration.md, docs/spec/current/design/README.md, docs/spec/current/design/workflow-orchestration.md, docs/spec/current/design/development-verification.md |
 | requirements | 2026-10-28 | 宮下 洋 | docs/spec/current/requirements/common.md, docs/spec/current/requirements/tool-integration.md, docs/spec/current/requirements/README.md, docs/spec/changes/CHG-0002/idea.md |
+| completion | 2026-10-28 | 宮下 洋 | plugins/sdd, .github/plugin/marketplace.json, test, package.json, .gitignore, README.md, .github/copilot-instructions.md, spec-driven-dev-summary.md, .github/agents, .github/skills, .github/instructions, .github/sdd, docs/spec/changes/CHG-0002/tasks.md |
 
 ## 次の作業
 
-- 独立レビュー: `sdd-reviewer` に、実装（`plugins/sdd/`、`test/`、`.github/plugin/marketplace.json`）と受入条件（AC-COM-004・009・010、AC-TOOL-005）の照合を頼む。
-- その後、完了の承認を求める。`idea.md` のリンクを直したため、要件（requirements）の再承認も一緒に求める。
+- なし（完了）。独立レビューは利用者の判断で行っていない。TASK-10（導入先での検査と委任の確認）は、push 後にマーケットプレイスからインストールした導入先で確かめる。push・PR・マージは人が行う。
