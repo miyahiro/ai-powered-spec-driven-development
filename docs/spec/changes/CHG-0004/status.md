@@ -3,8 +3,8 @@ id: CHG-0004
 title: スキル名に sdd- を付けて他のスキルとぶつからないようにする
 kind: enhancement
 size: light
-phase: implementation
-state: active
+phase: done
+state: done
 approvers: 宮下 洋
 branch:
 ---
@@ -28,7 +28,8 @@ branch:
 | 工程 | 日時 | 承認者 | 対象 |
 | --- | --- | --- | --- |
 | outline | 2026-10-28 | 宮下 洋 | docs/spec/changes/CHG-0004/outline.md |
+| completion | 2026-10-28 | 宮下 洋 | plugins/sdd, test, README.md, package.json, .github/plugin/marketplace.json, docs/spec/current/design, docs/spec/changes/CHG-0004/tasks.md |
 
 ## 次の作業
 
-- タスク分解（`tasks.md`）と実装。ブランチは作らず `main` で進める（利用者の判断）。
+- なし（完了）。`main` で進めたため、push は人が行う。導入済みの利用者は、プラグインを更新すると新しい名前（`/sdd-review` など）で呼ぶことになる。
