@@ -39,4 +39,4 @@ branch: change/CHG-0002
 
 ## 次の作業
 
-- タスク分解: `sdd-implementer` に、承認済みの設計（DES-TOOL-001・003〜006 ほか）から `tasks.md` を作ってもらう。今の `.github/` のファイルの削除は最後のタスクにする（DES-TOOL-006）。
+- 実装: [tasks.md](tasks.md) の TASK-1 から `sdd-implementer` が順に進める。TASK-7 と TASK-9 の VS Code での確認は利用者が行う。
