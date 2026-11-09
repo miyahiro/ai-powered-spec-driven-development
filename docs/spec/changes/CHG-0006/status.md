@@ -40,4 +40,4 @@ branch: change/CHG-0006
 
 ## 次の作業
 
-- タスク分解（`sdd-implementer`）: DES-TOOL-007・008 と受入条件 AC-COM-004・009〜013、AC-TOOL-005 から `tasks.md` を作る。`npx github:` の実際の動き（note.md の未確認の前提）を確かめるタスクを含める。
+- 人が `change/CHG-0006` を GitHub に push した後、TASK-6（`npx github:` でブランチを指定した init）と TASK-7（プラグインなしの VS Code での確認）を行う。タグでの確認は、人が `v0.6.0` のタグを作って push した後に行う。その後、レビュー（`sdd-reviewer`）と完了の承認。

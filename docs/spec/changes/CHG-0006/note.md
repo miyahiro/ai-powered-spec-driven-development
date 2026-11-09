@@ -7,6 +7,13 @@
 - プラグインの中で配り方を決めつけている文: `plugins/sdd/user_guide.md` の19行目（「プラグインの共通ルール」）、207〜208行目（困ったときの表）。
 - 開発環境: Node.js v24.21.0、npm 11.19.0。
 
+- `npx -y "git+file:///workspaces/ai-powered-spec-drivien-development#change/CHG-0006" init` で、Git から取得したパッケージの bin（`bin/sdd.mjs`）が実行された。取得されたのは `bin`・`lib`・`plugins`・`package.json`・`README.md`（npm が自動で含める）だけ。`"private": true` でも動いた（01fe7ad、npm 11.19.0）。
+
+## テストや確認の方法
+
+- 書き出しのテスト: `node --test test/repository-edition.test.mjs`。
+- npx の流れをローカルで確かめる: 空のフォルダーで `npx -y "git+file://<このリポジトリの絶対パス>#<ブランチ>" init`。キャッシュを分けたいときは `npm_config_cache=<一時フォルダー>` を付ける。
+
 ## 作業上の前提（未確認）
 
-- npx は、bin が1つだけのパッケージではその bin を実行する。`npx github:<owner>/<repo>#<ref>` は Git で取得し、`package.json` の `files` に従ってパッケージを作る。`"private": true` でも実行できる。実装のタスクで、実際に GitHub から取得して確かめる。
+- `github:` の指定でも、`git+file:` と同じく Git で取得して同じように動く（GitHub に push した後、TASK-6 で確かめる）。
