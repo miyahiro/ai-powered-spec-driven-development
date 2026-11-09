@@ -213,10 +213,10 @@ Q-1 は推奨どおり切り替えボタンにします。
 
 | エージェント | 担当 |
 | --- | --- |
-| [sdd-orchestrator](agents/sdd-orchestrator.agent.md) | 窓口。受付・壁打ち・要件・質問・承認とコミット・状況確認 |
-| [sdd-designer](agents/sdd-designer.agent.md) | 外部設計・内部設計・ADR |
-| [sdd-implementer](agents/sdd-implementer.agent.md) | タスク分解・テスト先行の実装 |
-| [sdd-reviewer](agents/sdd-reviewer.agent.md) | 読み取り専用のレビュー |
+| [sdd-orchestrator](com.github.copilot/agents/sdd-orchestrator.agent.md) | 窓口。受付・壁打ち・要件・質問・承認とコミット・状況確認 |
+| [sdd-designer](com.github.copilot/agents/sdd-designer.agent.md) | 外部設計・内部設計・ADR |
+| [sdd-implementer](com.github.copilot/agents/sdd-implementer.agent.md) | タスク分解・テスト先行の実装 |
+| [sdd-reviewer](com.github.copilot/agents/sdd-reviewer.agent.md) | 読み取り専用のレビュー |
 
 ### スキル（直接指定もできます）
 

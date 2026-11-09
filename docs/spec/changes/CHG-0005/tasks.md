@@ -1,0 +1,11 @@
+# CHG-0005 タスク一覧
+
+状態: `todo` / `doing` / `done` / `blocked` / `dropped`。結果には、自動のテストならコマンドと結果の要点とコミット、手動の確認なら手順と観測した結果を書く。未実施は「未実施」と書く。
+
+| ID | 内容 | 要件・受入条件 | 設計 | 確認方法 | 状態 | 結果 |
+| --- | --- | --- | --- | --- | --- | --- |
+| TASK-1 | 構成のテストを 1.0 の形式に先に直す。範囲: `test/customization.test.mjs`。完了の条件: `plugin.json` の `$schema` が 1.0 の値であること、エージェントが `com.github.copilot/agents/` にあり、ルート直下に `agents/` がないこと、共通ルールへのリンクが `../../common-rules.md` であることを検査し、今の配置で意図どおり失敗する | — | DES-TOOL-001 | TDD（`npm test`） | done | Red: `npm test` 18 件中 2 件が意図どおり失敗（`plugin.json` に `$schema` がない、ルート直下に `agents/` がある）。85125ac の上で確認 |
+| TASK-2 | エージェントを移す。範囲: `plugins/sdd/plugin.json`（`$schema`）、`plugins/sdd/agents/` → `plugins/sdd/com.github.copilot/agents/`（`git mv`）、エージェントの本文の相対リンク。完了の条件: TASK-1 のテストが通る | — | DES-TOOL-001 | TDD（`npm test`）、検査スクリプト | done | Green: `plugin.json` に `$schema` を加え、`git mv` で4つを移し、本文の相対リンク 18 本を `../../` にした。`npm test` 18 件中 17 件成功（残りは TASK-3 のユーザーガイドのリンク切れ） |
+| TASK-3 | ガイドと版を直す。範囲: `plugins/sdd/README.md`、`plugins/sdd/user_guide.md`、`plugins/sdd/plugin.json`、`.github/plugin/marketplace.json`、`package.json`。完了の条件: エージェントの置き場所とリンクが新しい場所になり、版が 0.5.0 でそろう | — | DES-TOOL-001 | レビュー、`npm test`、検査スクリプト | done | レビュー: README の構成の表と制約（1.0 を読めない古い VS Code の注意）、ユーザーガイドのエージェントへのリンク 4 本を直し、版を 0.5.0 にそろえた。`npm test` 18 件成功・失敗 0 |
+| TASK-4 | 設計の文書を直す。範囲: `docs/spec/current/design/tool-integration.md`。完了の条件: DES-TOOL-001 の配布の形式・配置図・`plugin.json` の説明・共通ルールへのリンク・仕様の出典と、構成のテストの記述が実物と一致する | — | DES-TOOL-001 | レビュー（実物と照合）、検査スクリプト、古いパスの `grep` | done | レビュー: DES-TOOL-001 の配布の形式・配置図・`plugin.json` の説明（`$schema` と従来形式との違い）・共通ルールと検査のスキルへのリンク・仕様の出典、構成のテストの記述を直した。`npm test` 18 件成功。検査スクリプトはエラー 0・警告 6（CHG-0001・CHG-0002・CHG-0004 の承認後に対象が変わったという警告。前からの 4 件に、この変更で CHG-0004 の対象を直したための 2 件が加わった）。古いパス `agents/` の `grep`（過去の記録と `.github/agents/` を除く）で残るのは、CHG-0005 の `status.md` の説明だけ |
+| TASK-5 | VS Code で動作を確かめる（利用者に依頼）。手順: 別の空の workspace に `plugins/sdd` を登録し、エージェントの選択に `sdd-orchestrator` が出ること、`/sdd-workflow-status` が呼べることを見る | — | DES-TOOL-001 | 手動の確認 | todo | |

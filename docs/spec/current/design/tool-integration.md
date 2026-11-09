@@ -2,14 +2,14 @@
 
 入力: [ツール要件](../requirements/tool-integration.md)、[共通要件](../requirements/common.md)。
 
-プラグインの仕様の出典: [VS Code の Agent plugins](https://code.visualstudio.com/docs/copilot/customization/agent-plugins)、[Agent plugin authoring reference](https://code.visualstudio.com/docs/agents/reference/agent-plugin-reference)、[Copilot CLI plugin reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference)（2026-10-28 に確認）。
+プラグインの仕様の出典: [VS Code の Agent plugins](https://code.visualstudio.com/docs/copilot/customization/agent-plugins)、[Agent plugin authoring reference](https://code.visualstudio.com/docs/agents/reference/agent-plugin-reference)、[Copilot CLI plugin reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference)（2026-10-28 に確認）、[GitHub Copilot のプラグイン](https://docs.github.com/ja/copilot/concepts/customizations/plugins)、[Agent Plugins 1.0 のマニフェストのスキーマ](https://agent-plugins.org/schemas/1.0.0/plugin.schema.json)（2026-11-09 に確認）。
 
 ## DES-TOOL-001 環境と配置
 
 | 項目 | 選択 |
 | --- | --- |
 | 対象 | VS Code Local の Copilot Chat（custom agents、agent skills、エージェントプラグイン（Preview）が使えること） |
-| 配布 | エージェントプラグイン（Copilot 形式）。このリポジトリをマーケットプレイスにする |
+| 配布 | エージェントプラグイン（Agent Plugins 1.0 の形式）。このリポジトリをマーケットプレイスにする |
 | Node.js | 検査スクリプト用。標準モジュールだけを使い、依存は持たない（20 以上を想定） |
 | Git | 状態の確認、ローカルのブランチ・コミット |
 | MCP・専用サーバー・Spec Kit | 使わない |
@@ -21,11 +21,11 @@
   copilot-instructions.md           # このリポジトリの基本ルール（配布しない）
 plugins/
   sdd/                              # プラグイン（配布物はこのフォルダーだけ）
-    plugin.json                     # Copilot 形式のマニフェスト（name: sdd、version）
+    plugin.json                     # Agent Plugins 1.0 のマニフェスト（$schema、name: sdd、version）
     common-rules.md                 # 共通ルール（全エージェントが最初に読む）
     README.md                       # 導入・管理ガイド
     user_guide.md                   # 利用者向けガイド
-    agents/
+    com.github.copilot/agents/      # Copilot 固有の部品（他のクライアントは読まない）
       sdd-orchestrator.agent.md     # 窓口
       sdd-designer.agent.md         # 設計
       sdd-implementer.agent.md      # 実装
@@ -38,11 +38,11 @@ package.json                        # テストの実行用（依存なし、配
 .gitignore                          # テストの一時ファイルなどを除く
 ```
 
-`plugin.json` は `name`・`version`・`description`・`author`・`repository`・`license`・`keywords` だけを書き、`agents/` と `skills/` は既定の場所に置いて指定を省く。`marketplace.json` は `name`・`owner`・`plugins` を持ち、`plugins` の1件が `{"name": "sdd", "source": "./plugins/sdd", "version": …}` を指す。版は `plugin.json` とマーケットプレイスの項目で同じ値にし、配布する変更のたびに上げる。
+`plugin.json` は `$schema`（`https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`）・`name`・`version`・`description`・`author`・`repository`・`license`・`keywords` だけを書く。`$schema` があると Agent Plugins 1.0 として読まれ、ないと従来形式（エージェントはルート直下の `agents/`）として読まれる。新しいプラグインには 1.0 が勧められており、スキルを他のクライアントと共有できるため 1.0 にする。1.0 では、スキルは標準の場所 `skills/` に、エージェントは Copilot 固有の部品として `com.github.copilot/agents/` に置く。1.0 を読めない古いクライアントではエージェントが見つからないため、導入・管理ガイドに注意として書く。`marketplace.json` は `name`・`owner`・`plugins` を持ち、`plugins` の1件が `{"name": "sdd", "source": "./plugins/sdd", "version": …}` を指す。版は `plugin.json` とマーケットプレイスの項目で同じ値にし、配布する変更のたびに上げる。
 
-共通ルールは、プラグインの部品に instructions がないため、`plugins/sdd/common-rules.md` の1つのファイルに置く。4つのエージェントは本文の冒頭に、共通ルールへの相対リンク（`../common-rules.md`）を付けて「作業の前に共通ルールを読む」と書く。リンク先が自動で読み込まれなくても、read で読めるようにするため。共通ルールの本文はこのファイルにだけ書き、エージェントやスキルに写さない。スキルを直接呼んだときは共通ルールを読まず、各スキルの手順に書いた範囲で守る（REQ-COM-006）。導入先の `.github/copilot-instructions.md` は、導入先が自分の基本ルールを書くファイルで、プラグインは触れない。
+共通ルールは、プラグインの部品に instructions がないため、`plugins/sdd/common-rules.md` の1つのファイルに置く。4つのエージェントは本文の冒頭に、共通ルールへの相対リンク（`../../common-rules.md`）を付けて「作業の前に共通ルールを読む」と書く。リンク先が自動で読み込まれなくても、read で読めるようにするため。共通ルールの本文はこのファイルにだけ書き、エージェントやスキルに写さない。スキルを直接呼んだときは共通ルールを読まず、各スキルの手順に書いた範囲で守る（REQ-COM-006）。導入先の `.github/copilot-instructions.md` は、導入先が自分の基本ルールを書くファイルで、プラグインは触れない。
 
-検査スクリプトは、検査の手順を持つ専用のスキル `sdd-spec-check` の中（`scripts/check.mjs`）に置く。スキル・エージェントの本文では `${PLUGIN_ROOT}` などの変数が展開されないため、他のスキルとエージェントはスクリプトのパスを書かず、`sdd-spec-check` の `SKILL.md` への相対リンク（`../skills/sdd-spec-check/SKILL.md` など）で参照する。`sdd-spec-check` は、自分の `SKILL.md` と同じフォルダーの `scripts/check.mjs` を、workspace のルートで実行する。
+検査スクリプトは、検査の手順を持つ専用のスキル `sdd-spec-check` の中（`scripts/check.mjs`）に置く。スキル・エージェントの本文では `${PLUGIN_ROOT}` などの変数が展開されないため、他のスキルとエージェントはスクリプトのパスを書かず、`sdd-spec-check` の `SKILL.md` への相対リンク（エージェントからは `../../skills/sdd-spec-check/SKILL.md`、スキルからは `../sdd-spec-check/SKILL.md`）で参照する。`sdd-spec-check` は、自分の `SKILL.md` と同じフォルダーの `scripts/check.mjs` を、workspace のルートで実行する。
 
 エージェントとスキルの名前（スキルはフォルダー名と `SKILL.md` の `name`）は、先頭に `sdd-` を付ける（`sdd-orchestrator`、`sdd-review` など）。`review` のようなよくある名前は、エディターに最初からあるコマンドや他のプラグインのスキルと同じ名前になりやすく、どれが呼ばれるか分からなくなるため。利用者の呼びかけの言葉（「grill-me して」など）は名前ではないので、付けない。
 
@@ -103,7 +103,7 @@ workspace の `.github/agents/`・`.github/skills/` に同じ名前のエージ�
 - 開発する人は、`chat.pluginLocations` に `plugins/sdd` を登録し、このリポジトリでもプラグインを使って開発する。リポジトリにはプラグインの外のエージェント・スキルを置かないため、登録したプラグインがそのまま使われる。
 - 今の配置からの移し方: プラグインは `.github/` の今のファイルを残したまま `plugins/sdd/` に写して作る。今のファイルが優先されて隠れるため、プラグインの動作は別の空の workspace に `plugins/sdd` を登録して確かめる。確かめた後、最後のタスクで `.github/agents/`・`.github/skills/`・`.github/instructions/`・`.github/sdd/` を消す。
 - テストはリポジトリのルートで `npm test` を実行する（依存なし）。`test/check.test.mjs` は検査スクリプトを、`test/customization.test.mjs` はプラグインの構成を確かめる。
-- 構成のテストで確かめること: `plugin.json` の `name` と、マーケットプレイスの項目の `source`・`version` の一致。4つのエージェントの名前・ツール・`user-invocable`・呼べる担当と、本文の冒頭の共通ルールへのリンク。14のスキルの名前（先頭が `sdd-`）と手順の形。共通ルールの必須の規則（push をしない、`git add -A` を使わない、承認のコミットの形）が `common-rules.md` にあること。`sdd-spec-check` 以外にスクリプトのパスが書かれていないこと。プラグインの中の Markdown のリンク切れ（検査スクリプトのリンクの検査の関数を、対象のフォルダーを変えて使う）。このリポジトリが自分の検査でエラーにならないこと。
+- 構成のテストで確かめること: `plugin.json` の `$schema` が Agent Plugins 1.0 の値であること、`name` と、マーケットプレイスの項目の `source`・`version` の一致。4つのエージェントが `com.github.copilot/agents/` にあり、ルート直下に `agents/` がないこと、エージェントの名前・ツール・`user-invocable`・呼べる担当と、本文の冒頭の共通ルールへのリンク。14のスキルの名前（先頭が `sdd-`）と手順の形。共通ルールの必須の規則（push をしない、`git add -A` を使わない、承認のコミットの形）が `common-rules.md` にあること。`sdd-spec-check` 以外にスクリプトのパスが書かれていないこと。プラグインの中の Markdown のリンク切れ（検査スクリプトのリンクの検査の関数を、対象のフォルダーを変えて使う）。このリポジトリが自分の検査でエラーにならないこと。
 - 検査スクリプトは、リンクの検査の関数を対象のフォルダーを引数で受け取る形にしてテストから使えるようにする。導入先での検査の対象（`docs/` と `.github/`）は変えない。
 - VS Code での確認（エージェント・スキルが表示される、`tools`・`agents`・`user-invocable` が効く、共通ルールが読まれる、`sdd-spec-check` のスクリプトが相対パスで動く）は、手順と結果をタスク一覧に残す。
 

@@ -8,9 +8,9 @@ user-invocable: false
 
 # 実装担当
 
-作業の前に [共通ルール](../common-rules.md) を読み、守る。
+作業の前に [共通ルール](../../common-rules.md) を読み、守る。
 
-窓口から渡された変更 ID・読むもの・編集してよい範囲に従う。タスク分解は [sdd-task-planning](../skills/sdd-task-planning/SKILL.md)、実装は [sdd-tdd-cycle](../skills/sdd-tdd-cycle/SKILL.md) の手順を使う。
+窓口から渡された変更 ID・読むもの・編集してよい範囲に従う。タスク分解は [sdd-task-planning](../../skills/sdd-task-planning/SKILL.md)、実装は [sdd-tdd-cycle](../../skills/sdd-tdd-cycle/SKILL.md) の手順を使う。
 
 - 振る舞いのタスクは、テストを先に書いて意図した失敗を確かめてから実装する。構文・環境のエラーを Red と呼ばない。文書・設定のタスクは、それに合った確認をする。
 - テストはコマンドと目的を示して実行する（ホストの確認に従う）。結果は `tasks.md` の「結果」に、コマンドと結果の要点で書く。未実施を成功と書かない。

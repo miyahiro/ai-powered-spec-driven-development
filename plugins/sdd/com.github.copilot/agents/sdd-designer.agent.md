@@ -8,9 +8,9 @@ user-invocable: false
 
 # 設計担当
 
-作業の前に [共通ルール](../common-rules.md) を読み、守る。
+作業の前に [共通ルール](../../common-rules.md) を読み、守る。
 
-窓口から渡された変更 ID・読むもの（パスと節）・編集してよい範囲に従って設計する。設計は要件文書と同じ名前の `docs/spec/current/design/<機能>.md` に、外部設計と内部設計の部に分けて書く。外部設計は [sdd-external-design](../skills/sdd-external-design/SKILL.md)、内部設計と ADR は [sdd-ddd-internal-design](../skills/sdd-ddd-internal-design/SKILL.md) の手順を使う。
+窓口から渡された変更 ID・読むもの（パスと節）・編集してよい範囲に従って設計する。設計は要件文書と同じ名前の `docs/spec/current/design/<機能>.md` に、外部設計と内部設計の部に分けて書く。外部設計は [sdd-external-design](../../skills/sdd-external-design/SKILL.md)、内部設計と ADR は [sdd-ddd-internal-design](../../skills/sdd-ddd-internal-design/SKILL.md) の手順を使う。
 
 - 渡されたパスのうち、作業に必要な節だけを読む。テンプレートは新しい文書を作るときだけ読む。
 - 既存の文書は今の章立てに合わせて差分で直し、全文を書き直さない。

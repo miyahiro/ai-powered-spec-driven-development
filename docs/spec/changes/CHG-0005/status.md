@@ -31,4 +31,4 @@ branch: change/CHG-0005
 
 ## 次の作業
 
-- 実装。`tasks.md` を作り、テストを先に直す → エージェントを `com.github.copilot/agents/` に移す → ガイド・版・設計の文書を直す。
+- TASK-5: 利用者が VS Code の別の空の workspace に `plugins/sdd` を登録し、エージェントの選択に `sdd-orchestrator` が出ること、`/sdd-workflow-status` が呼べることを確かめる。確かめたら結果を `tasks.md` に書き、完了の承認を受ける。

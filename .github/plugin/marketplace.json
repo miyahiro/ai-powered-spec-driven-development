@@ -7,7 +7,7 @@
       "name": "sdd",
       "source": "./plugins/sdd",
       "description": "スペック駆動開発のエージェントとスキル（ライト版）",
-      "version": "0.4.0"
+      "version": "0.5.0"
     }
   ]
 }

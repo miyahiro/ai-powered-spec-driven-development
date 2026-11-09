@@ -40,6 +40,7 @@ function markdownFiles(folder) {
 
 test('the plugin manifest and the marketplace entry agree', () => {
   const manifest = JSON.parse(read(resolve(plugin, 'plugin.json')));
+  assert.equal(manifest.$schema, 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json', 'read as Agent Plugins 1.0');
   assert.equal(manifest.name, 'sdd');
   assert.match(manifest.version, /^\d+\.\d+\.\d+$/);
   const marketplace = JSON.parse(read(resolve(workspace, '.github/plugin/marketplace.json')));
@@ -51,7 +52,8 @@ test('the plugin manifest and the marketplace entry agree', () => {
 });
 
 test('four agents have explicit roles, least privilege and read the common rules first', () => {
-  const folder = resolve(plugin, 'agents');
+  assert.ok(!existsSync(resolve(plugin, 'agents')), 'agents live in com.github.copilot/agents in Agent Plugins 1.0');
+  const folder = resolve(plugin, 'com.github.copilot/agents');
   const expected = { 'sdd-orchestrator': ['read', 'search', 'edit', 'execute', 'agent', 'vscode_askQuestions'], 'sdd-designer': ['read', 'search', 'edit'], 'sdd-implementer': ['read', 'search', 'edit', 'execute'], 'sdd-reviewer': ['read', 'search'] };
   assert.deepEqual(list(folder).sort(), Object.keys(expected).map(name => `${name}.agent.md`).sort());
   for (const [name, tools] of Object.entries(expected)) {
@@ -64,7 +66,7 @@ test('four agents have explicit roles, least privilege and read the common rules
     const text = read(path);
     assert.ok(!text.includes('hooks:'), `${name}: custom hooks are not used`);
     const opening = text.replace(/^---[\s\S]*?\n---\n/, '').split('\n## ')[0];
-    assert.ok(opening.includes('](../common-rules.md)'), `${name}: reads the common rules first`);
+    assert.ok(opening.includes('](../../common-rules.md)'), `${name}: reads the common rules first`);
   }
   assert.deepEqual(frontmatter(resolve(folder, 'sdd-orchestrator.agent.md')).agents, ['sdd-designer', 'sdd-implementer', 'sdd-reviewer']);
 });
