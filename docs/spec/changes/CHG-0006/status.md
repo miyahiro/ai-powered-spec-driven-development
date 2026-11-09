@@ -3,7 +3,7 @@ id: CHG-0006
 title: エージェントとスキルを導入先リポジトリの .github/ に書き出せるようにする
 kind: enhancement
 size: standard
-phase: design
+phase: implementation
 state: active
 approvers: 宮下 洋
 branch: change/CHG-0006
@@ -35,7 +35,8 @@ branch: change/CHG-0006
 | 工程 | 日時 | 承認者 | 対象 |
 | --- | --- | --- | --- |
 | requirements | 2026-11-09 | 宮下 洋 | docs/spec/current/requirements/common.md, docs/spec/current/requirements/tool-integration.md, docs/spec/current/requirements/README.md, docs/spec/changes/CHG-0006/idea.md |
+| design | 2026-11-09 | 宮下 洋 | docs/spec/current/design/tool-integration.md, docs/spec/current/design/README.md |
 
 ## 次の作業
 
-- 設計（`sdd-designer`）: 書き出しスクリプト（init / update / status）の配置と入口、リンクの書き換えの規則、記録の形式、更新の判定、手で消したファイルによるリンク切れのガイドでの扱いを、`docs/spec/current/design/tool-integration.md` などに書く。
+- タスク分解（`sdd-implementer`）: DES-TOOL-007・008 と受入条件 AC-COM-004・009〜013、AC-TOOL-005 から `tasks.md` を作る。`npx github:` の実際の動き（note.md の未確認の前提）を確かめるタスクを含める。
