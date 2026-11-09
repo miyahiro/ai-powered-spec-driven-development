@@ -39,6 +39,7 @@ branch: change/CHG-0006
 | requirements | 2026-11-09 | 宮下 洋 | docs/spec/current/requirements/common.md, docs/spec/current/requirements/tool-integration.md, docs/spec/current/requirements/README.md, docs/spec/changes/CHG-0006/idea.md |
 | design | 2026-11-09 | 宮下 洋 | docs/spec/current/design/tool-integration.md, docs/spec/current/design/README.md |
 | completion | 2026-11-09 | 宮下 洋 | bin/sdd.mjs, lib/repository-edition.mjs, package.json, test/repository-edition.test.mjs, test/customization.test.mjs, plugins/sdd/README.md, plugins/sdd/user_guide.md, README.md, plugins/sdd/plugin.json, .github/plugin/marketplace.json, docs/spec/current/design/tool-integration.md, docs/spec/changes/CHG-0006/tasks.md |
+| completion | 2026-11-09 | 宮下 洋 | plugins/sdd/README.md, docs/spec/changes/CHG-0006/tasks.md |
 
 ## 次の作業
 
