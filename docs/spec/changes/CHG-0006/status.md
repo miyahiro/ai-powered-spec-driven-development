@@ -3,8 +3,8 @@ id: CHG-0006
 title: エージェントとスキルを導入先リポジトリの .github/ に書き出せるようにする
 kind: enhancement
 size: standard
-phase: implementation
-state: active
+phase: done
+state: done
 approvers: 宮下 洋
 branch: change/CHG-0006
 ---
@@ -38,7 +38,8 @@ branch: change/CHG-0006
 | --- | --- | --- | --- |
 | requirements | 2026-11-09 | 宮下 洋 | docs/spec/current/requirements/common.md, docs/spec/current/requirements/tool-integration.md, docs/spec/current/requirements/README.md, docs/spec/changes/CHG-0006/idea.md |
 | design | 2026-11-09 | 宮下 洋 | docs/spec/current/design/tool-integration.md, docs/spec/current/design/README.md |
+| completion | 2026-11-09 | 宮下 洋 | bin/sdd.mjs, lib/repository-edition.mjs, package.json, test/repository-edition.test.mjs, test/customization.test.mjs, plugins/sdd/README.md, plugins/sdd/user_guide.md, README.md, plugins/sdd/plugin.json, .github/plugin/marketplace.json, docs/spec/current/design/tool-integration.md, docs/spec/changes/CHG-0006/tasks.md |
 
 ## 次の作業
 
-- レビュー（`sdd-reviewer`）の後、完了の承認。
+- なし（完了）。push・PR・マージは人が行う。マージの後、`v0.6.0` のタグを付けて push すると、リポジトリ版をタグで指定して導入できる（タグでの確認は未実施）。確かめていない範囲: Windows・macOS での実行、Copilot CLI・coding agent がリポジトリ版を読むか、古い npm（9 以下）での `npx github:`。
