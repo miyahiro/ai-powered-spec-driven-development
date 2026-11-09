@@ -3,8 +3,8 @@ id: CHG-0005
 title: エージェントの置き場所を Agent Plugins 1.0 の形式に合わせる
 kind: enhancement
 size: light
-phase: implementation
-state: active
+phase: done
+state: done
 approvers: 宮下 洋
 branch: change/CHG-0005
 ---
@@ -28,7 +28,8 @@ branch: change/CHG-0005
 | 工程 | 日時 | 承認者 | 対象 |
 | --- | --- | --- | --- |
 | outline | 2026-11-09 | 宮下 洋 | docs/spec/changes/CHG-0005/outline.md |
+| completion | 2026-11-09 | 宮下 洋 | .github/plugin/marketplace.json, package.json, plugins/sdd/plugin.json, plugins/sdd/com.github.copilot/agents, plugins/sdd/README.md, plugins/sdd/user_guide.md, test/customization.test.mjs, docs/spec/current/design/tool-integration.md, docs/spec/changes/CHG-0005/tasks.md |
 
 ## 次の作業
 
-- TASK-5: 利用者が VS Code の別の空の workspace に `plugins/sdd` を登録し、エージェントの選択に `sdd-orchestrator` が出ること、`/sdd-workflow-status` が呼べることを確かめる。確かめたら結果を `tasks.md` に書き、完了の承認を受ける。
+- なし（完了）。push・PR・マージは人が行う。導入済みの利用者は、プラグインを 0.5.0 に更新すると、エージェントが `com.github.copilot/agents/` から読まれる。Agent Plugins 1.0 を読めない古い VS Code では、VS Code の更新が必要。
