@@ -207,3 +207,13 @@ test('the command writes, guards and reports the repository edition', context =>
   assert.equal(checked.status, 0, checked.stdout);
   assert.match(checked.stdout, /エラー 0 件/);
 });
+
+test('line endings changed by Git on checkout do not count as hand-made changes', context => {
+  const root = temporary(context);
+  applyPlan(root, planUpdate(root, null, edition('0.1.0', { [A('a')]: 'line1\nline2\n', [A('b')]: 'b1\n' })));
+  writeAll(root, [[A('a'), 'line1\r\nline2\r\n']]);
+  assert.deepEqual(inspect(root, readRecord(root)), { modified: [], removedByHand: [] });
+  const plan = planUpdate(root, readRecord(root), edition('0.2.0', { [A('a')]: 'line1\nline2 changed\n', [A('b')]: 'b1\n' }));
+  assert.deepEqual(plan.report.replaced, [A('a')]);
+  assert.deepEqual(plan.report.newBesideModified, []);
+});
