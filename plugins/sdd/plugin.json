@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "sdd",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "GitHub Copilot / VS Code で、アイデアから要件・設計・実装・検証までを AI と対話しながら進めるスペック駆動開発のエージェントとスキル（ライト版）",
   "author": { "name": "宮下 洋" },
   "repository": "https://github.com/miyahiro/ai-powered-spec-drivien-development",
