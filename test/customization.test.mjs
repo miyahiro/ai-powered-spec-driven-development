@@ -127,3 +127,21 @@ test('agents, skills and common rules live only in the plugin', () => {
     assert.ok(!existsSync(resolve(workspace, folder)), `${folder}: workspace copies take precedence over the plugin`);
   }
 });
+
+test('the package can be run with npx and points back to this repository', () => {
+  const pkg = JSON.parse(read(resolve(workspace, 'package.json')));
+  assert.deepEqual(pkg.bin, { sdd: 'bin/sdd.mjs' });
+  assert.deepEqual(pkg.files, ['bin', 'lib', 'plugins']);
+  assert.ok(existsSync(resolve(workspace, pkg.bin.sdd)), 'Missing: bin/sdd.mjs');
+  assert.match(JSON.parse(read(resolve(plugin, 'plugin.json'))).repository, /^https:\/\/github\.com\/[^/]+\/[^/]+$/);
+});
+
+test('documents read by agents fit both the plugin and the repository edition', () => {
+  const guide = resolve(plugin, 'README.md');
+  for (const path of markdownFiles(plugin)) {
+    if (path === guide) continue;
+    read(path).split('\n').forEach((line, index) => {
+      if (line.includes('プラグイン')) assert.ok(line.includes('リポジトリ版'), `${path}:${index + 1}: mention the repository edition as well`);
+    });
+  }
+});
