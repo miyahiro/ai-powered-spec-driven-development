@@ -4,5 +4,7 @@
   "private": true,
   "type": "module",
   "engines": { "node": ">=20" },
+  "bin": { "sdd": "bin/sdd.mjs" },
+  "files": ["bin", "lib", "plugins"],
   "scripts": { "test": "node --test test/*.test.mjs" }
 }

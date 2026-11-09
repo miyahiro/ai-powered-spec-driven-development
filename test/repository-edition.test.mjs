@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, cpSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, cpSync, readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { checkLinks } from '../plugins/sdd/skills/sdd-spec-check/scripts/check.mjs';
@@ -143,4 +144,66 @@ test('the record is written last, so a failed write leaves the old record', cont
   assert.throws(() => applyPlan(root, plan));
   assert.equal(readRecord(root).version, '0.1.0');
   assert.ok(existsSync(join(root, RECORD)));
+});
+
+const cli = resolve(workspace, 'bin/sdd.mjs');
+
+function run(root, ...args) {
+  const result = spawnSync(process.execPath, [cli, ...args], { cwd: root, encoding: 'utf8' });
+  return { code: result.status, output: result.stdout + result.stderr };
+}
+
+function snapshot(root, dir = '') {
+  return readdirSync(join(root, dir)).sort().flatMap(name => {
+    const path = dir ? `${dir}/${name}` : name;
+    return statSync(join(root, path)).isDirectory() ? snapshot(root, path) : [[path, readFileSync(join(root, path), 'utf8')]];
+  });
+}
+
+test('the command writes, guards and reports the repository edition', context => {
+  const root = temporary(context);
+  writeAll(root, [['.github/copilot-instructions.md', '# 基本ルール\n'], ['src/app.js', 'app\n']]);
+  const { version, digest } = buildEdition(plugin);
+
+  assert.equal(run(root).code, 2, 'no operation shows the usage');
+  assert.equal(run(root, 'deploy').code, 2);
+  for (const operation of ['update', 'status']) {
+    const result = run(root, operation);
+    assert.equal(result.code, 1, operation);
+    assert.match(result.output, /init/, `${operation} without a record suggests init`);
+  }
+  assert.ok(!existsSync(join(root, '.github/sdd')));
+
+  const init = run(root, 'init');
+  assert.equal(init.code, 0, init.output);
+  assert.ok(init.output.includes(`${version}（${digest}）`));
+  assert.match(init.output, /追加（\d+件）/);
+  assert.match(init.output, /git status/);
+  assert.equal(readFileSync(join(root, '.github/copilot-instructions.md'), 'utf8'), '# 基本ルール\n');
+  assert.equal(readFileSync(join(root, 'src/app.js'), 'utf8'), 'app\n');
+  assert.equal(readRecord(root).version, version);
+
+  const before = snapshot(root);
+  const again = run(root, 'init');
+  assert.equal(again.code, 1);
+  assert.match(again.output, /update/);
+  assert.deepEqual(snapshot(root), before, 'a second init writes nothing');
+
+  writeFileSync(join(root, '.github/agents/sdd-reviewer.agent.md'), 'mine\n');
+  const changed = snapshot(root);
+  const status = run(root, 'status');
+  assert.equal(status.code, 0, status.output);
+  assert.ok(status.output.includes(`${version}（${digest}）`));
+  assert.match(status.output, /手で変えた（1件）[\s\S]*\.github\/agents\/sdd-reviewer\.agent\.md/);
+  assert.deepEqual(snapshot(root), changed, 'status writes nothing');
+
+  const update = run(root, 'update');
+  assert.equal(update.code, 0, update.output);
+  assert.ok(update.output.includes(`記録の版: ${version}（${digest}）→ 実行した版: ${version}（${digest}）`));
+  assert.match(update.output, /`\.new` を置いた（手で変えた）（1件）/);
+  assert.ok(existsSync(join(root, '.github/agents/sdd-reviewer.agent.md.new')));
+
+  const checked = spawnSync(process.execPath, [join(root, '.github/skills/sdd-spec-check/scripts/check.mjs')], { cwd: root, encoding: 'utf8' });
+  assert.equal(checked.status, 0, checked.stdout);
+  assert.match(checked.stdout, /エラー 0 件/);
 });
