@@ -40,4 +40,4 @@ branch: change/CHG-0006
 
 ## 次の作業
 
-- 人が `change/CHG-0006` を GitHub に push した後、TASK-6（`npx github:` でブランチを指定した init）と TASK-7（プラグインなしの VS Code での確認）を行う。タグでの確認は、人が `v0.6.0` のタグを作って push した後に行う。その後、レビュー（`sdd-reviewer`）と完了の承認。
+- レビュー（`sdd-reviewer`）の後、完了の承認。

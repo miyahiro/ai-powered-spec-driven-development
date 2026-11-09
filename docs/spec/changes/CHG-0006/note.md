@@ -8,6 +8,7 @@
 - 開発環境: Node.js v24.21.0、npm 11.19.0。
 
 - `npx -y "git+file:///workspaces/ai-powered-spec-drivien-development#change/CHG-0006" init` で、Git から取得したパッケージの bin（`bin/sdd.mjs`）が実行された。取得されたのは `bin`・`lib`・`plugins`・`package.json`・`README.md`（npm が自動で含める）だけ。`"private": true` でも動いた（01fe7ad、npm 11.19.0）。
+- `npx -y github:miyahiro/ai-powered-spec-drivien-development#change/CHG-0006 init` でも同じように動いた（44955ef）。
 
 ## テストや確認の方法
 
@@ -16,4 +17,4 @@
 
 ## 作業上の前提（未確認）
 
-- `github:` の指定でも、`git+file:` と同じく Git で取得して同じように動く（GitHub に push した後、TASK-6 で確かめる）。
+- タグ（`#v0.6.0`）の指定でも、ブランチと同じように動く（タグはまだない）。
