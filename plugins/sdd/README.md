@@ -72,6 +72,21 @@ Node.js 20 以上と Git（npx が GitHub からこのリポジトリを取得�
 - 取り除くときは、記録の `files` にあるファイルと `.github/sdd/` を消します。
 - プラグインとリポジトリ版を両方入れると、リポジトリ版が使われます。
 
+#### clone したリポジトリから導入する
+
+GitHub から取得できないとき、または手元で中身を確かめてから書き出したいときは、clone したこのリポジトリのスクリプトを、導入先のリポジトリのルートで実行します。書き出す中身はスクリプトのある clone から読み、書き出し先は実行したフォルダーです。
+
+```sh
+git clone https://github.com/miyahiro/ai-powered-spec-drivien-development.git ~/sdd-src
+git -C ~/sdd-src checkout v0.6.0      # 版は clone の側で切り替える
+
+cd <導入先のリポジトリ>
+node ~/sdd-src/bin/sdd.mjs init       # npx -y ~/sdd-src init でも同じ
+```
+
+- update と status も同じ書き方です（`node ~/sdd-src/bin/sdd.mjs update`）。確かめ方とコミットするものは、上の手順と同じです。
+- 書き出すのは clone の作業ツリーの今の中身で、コミットしていない変更も含みます。チームで同じ版をそろえるときは、タグを checkout し、変更のない状態で実行してください。
+
 ## 3. AI に任せること・任せないこと
 
 | 操作 | AI | 人 |
