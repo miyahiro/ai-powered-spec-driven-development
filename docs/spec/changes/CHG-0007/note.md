@@ -8,6 +8,9 @@
 - 受入確認計画の表は design/development-verification.md の DES-DEV-004 にあり、AC-WF-012 までしかない。
 - ユーザーガイドの依頼の例は「4. 工程ごとの進め方」（要件・設計・実装の3つ）と「5. 途中で行うこと」の表にある。受付の後・壁打ちの合意の後・完了の承認の依頼の例はなかった（CHG-0007 の実装で「区切りごとの依頼の例」の表を足して対応済み）。
 
+- 進行中の案件の status.md は案件のブランチ（change/<ID>）にしかなく、main など別のブランチの作業ツリーの docs/spec/changes/ からは見えない（TASK-8 の3回目の試行、docs/spec/changes/CHG-0007/status.md の Q-12）。
+- AI の Git 操作は status・diff・log と確認後のブランチ作成・切り替え・コミットに限られる（docs/spec/current/requirements/tool-integration.md の REQ-TOOL-002）。検査スクリプトはファイルを書き換えない読み取りの Git コマンドを内部で使っている（check.mjs の git 関数、DES-TOOL-003）。
+- 別案として AI が `git log --branches --name-only` で他のブランチのフォルダを探す方法も REQ-TOOL-002 の範囲内だが、`state` を知るには status.md の中身が要り、`git log -p` などで出力が大きくなるため採らなかった。
 ## テストや確認の方法
 
 - 原本の検査: リポジトリのルートで `node plugins/sdd/skills/sdd-spec-check/scripts/check.mjs CHG-0007`（設計の編集後にエラー 0・警告 0）。

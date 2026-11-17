@@ -69,7 +69,7 @@ workspace の `.github/agents/`・`.github/skills/` に同じ名前のエージ�
 
 ## DES-TOOL-003 検査スクリプト
 
-`sdd-spec-check` スキルが、workspace のルートで `node <sdd-spec-check のフォルダー>/scripts/check.mjs [変更ID] [--json]` を実行する。検査するのは実行したフォルダー（`process.cwd()`）で、スクリプトの置き場所には依存しない。人は、インストール先のスクリプト（プラグインでは `~/.copilot/installed-plugins/<マーケットプレイス>/sdd/skills/sdd-spec-check/scripts/check.mjs`、リポジトリ版では `.github/skills/sdd-spec-check/scripts/check.mjs`）を workspace のルートで直接実行してもよい。ファイルを書き換えず、Git は読み取りのコマンド（`log`・`diff`・`ls-files`・`branch`）だけを使う。
+`sdd-spec-check` スキルが、workspace のルートで `node <sdd-spec-check のフォルダー>/scripts/check.mjs [変更ID] [--json]` を実行する。検査するのは実行したフォルダー（`process.cwd()`）で、スクリプトの置き場所には依存しない。人は、インストール先のスクリプト（プラグインでは `~/.copilot/installed-plugins/<マーケットプレイス>/sdd/skills/sdd-spec-check/scripts/check.mjs`、リポジトリ版では `.github/skills/sdd-spec-check/scripts/check.mjs`）を workspace のルートで直接実行してもよい。ファイルを書き換えず、Git は読み取りのコマンド（`log`・`diff`・`ls-files`・`branch`・`for-each-ref`・`ls-tree`・`show`）だけを使う。ブランチの切り替えはしない。AI の Git の操作（DES-TOOL-002）は増えず、他のブランチの内容はこのスクリプトの出力を通してだけ見る。
 
 | 検査 | 対象 | 種別 |
 | --- | --- | --- |
@@ -84,6 +84,20 @@ workspace の `.github/agents/`・`.github/skills/` に同じ名前のエージ�
 
 変更 ID を指定すると、その案件の要約（題名・規模・工程・状態・ブランチと今のブランチ・期限の来た質問・承認と再承認が必要な工程・タスクの件数・次の作業）も出す。`guide: on` の案件では「手引き: あり」の1行も出し、`guide` がなければその行を出さない。`--json` で同じ内容を JSON で出す（伴走は `summary.guide` の真偽値）。
 
+変更 ID を指定しないときは、他のブランチの進行中の案件の一覧も出す。進行中の案件の `status.md` は案件のブランチにしかないため、今のブランチの `docs/spec/changes/` だけでは見えない案件を、案内（DES-WF-007）と再開（DES-WF-006）の候補にするため。
+
+| 項目 | 決まり |
+| --- | --- |
+| 対象のブランチ | ローカルのブランチ（`git for-each-ref refs/heads`）のうち、今のブランチ以外。リモートのブランチは見ない（fetch もしない） |
+| 読むもの | 各ブランチの `docs/spec/changes/` の下のフォルダ（`git ls-tree`）と、その `status.md` の frontmatter（`git show <ブランチ>:docs/spec/changes/<フォルダ>/status.md`）だけ。作業ツリーは変えない |
+| 含める案件 | 今のブランチの `docs/spec/changes/` にないフォルダで、frontmatter の `branch` がそのブランチ名と同じで、`state` が `done` でないもの。同じ変更 ID は1件にまとめる |
+| 含めない案件 | `status.md` がない、読めない、frontmatter がない、`branch` が空か別のブランチ名のもの。どれもエラーにも警告にもしない（そのブランチで検査したときに見つかる）。他のブランチの `status.md` の形式は検査しない |
+| Git が使えない | 一覧を「確かめられない」とし、エラーにしない |
+| 文字の出力 | `他のブランチの進行中の案件: CHG-0007 題名（change/CHG-0007、design / active）`。複数なら ` / ` で区切る。なければ「なし」 |
+| JSON | 最上位の `otherBranchCases` に `{ id, title, size, phase, state, branch }` の配列。Git が使えなければ `null` |
+
+- 変更 ID を指定して、今のブランチにその `status.md` がないときは、エラー「案件の状態ファイルがありません」に、その案件がある他のブランチの名前を添える（上と同じ決まりで見つかったとき）。
+- 題名は秘密らしい文字列を伏せて出す。終了コードには影響しない。
 - 終了コードは、エラーがあれば 1、なければ 0。警告だけでは 0。
 - 出力には、ファイルのパス・行・ID・質問の文と要点だけを含める。文書の本文は出さない。token・鍵などの秘密らしい文字列は伏せて出す。
 

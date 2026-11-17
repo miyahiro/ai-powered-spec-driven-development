@@ -32,6 +32,7 @@ branch: change/CHG-0007
 | Q-9 | 軽量の案件で前の工程の承認がない依頼も同じ扱いにするか（深掘り） | 同じ扱い（推奨）/ 標準だけ | design | resolved | 同じ扱い（DES-WF-007 工程に沿わない依頼） |
 | Q-10 | marketplace.json（0.6.1）と plugin.json・package.json（0.6.0）の版の不一致をどうするか（実装） | この案件で 0.7.0 に揃える（推奨）/ 0.6.1 に揃える / 別の案件で直す | implementation | resolved | この案件で 0.7.0 に揃える（README の導入例のタグも合わせる） |
 | Q-11 | sdd-spec-check/SKILL.md の要約の項目に「手引き」を足すか（実装） | 足す（推奨）/ 足さない | implementation | resolved | 足す |
+| Q-12 | 進行中の案件の status.md が案件のブランチにしかなく、別のブランチから候補として示せない（TASK-8 の3回目、AC-WF-016） | この案件で設計を直し承認し直す（推奨）/ 制約として残す | design | resolved | この案件で設計を直し、設計を承認し直してから実装する |
 
 ## 承認
 
@@ -39,9 +40,9 @@ branch: change/CHG-0007
 | --- | --- | --- | --- |
 | requirements | 2026-11-17 | 宮下 洋 | docs/spec/current/requirements/workflow-orchestration.md, docs/spec/current/requirements/README.md, docs/spec/changes/CHG-0007/idea.md |
 | design | 2026-11-17 | 宮下 洋 | docs/spec/current/design/workflow-orchestration.md, docs/spec/current/design/README.md, docs/spec/current/design/specification-management.md, docs/spec/current/design/tool-integration.md, docs/spec/current/design/development-verification.md |
+| design | 2026-11-17 | 宮下 洋 | docs/spec/current/design/workflow-orchestration.md, docs/spec/current/design/tool-integration.md, docs/spec/current/design/development-verification.md |
 
 ## 次の作業
 
-- 独立レビュー: 済み（sdd-reviewer、825e137 に対して。重大な指摘なし、中1・低3は TASK-11〜13・TASK-7 で対応）
-- TASK-8: Copilot Local での対話の試行（AC-WF-013〜016。手順は tasks.md）を人が行い、結果を伝える
-- 完了の承認（タスクがすべて done になってから）
+- 実装: 窓口の「開発して」の振り分けの修正、sdd-guide の「文書にない手順や設定例を作らない」、Q-12 の実装、TASK-8 の再試行（AC-WF-016）
+- 完了の承認
