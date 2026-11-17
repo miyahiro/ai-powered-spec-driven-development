@@ -145,6 +145,7 @@ function readCase(root, folder, errors, warnings) {
   if (!PHASES[size]) { fail(`size の値が正しくありません: ${size}`); return null; }
   if (!PHASES[size].includes(data.phase)) fail(`phase の値が size=${size} に合いません: ${data.phase}`);
   if (!STATES.includes(data.state)) fail(`state の値が正しくありません: ${data.state}`);
+  if (Object.hasOwn(data, 'guide') && data.guide !== 'on') fail(`guide の値が正しくありません: ${data.guide}`);
   const approvers = (data.approvers ?? '').split(/[、,]/).map(name => name.trim()).filter(Boolean);
   if (!approvers.length) fail('approvers が空です');
   const questions = [];
@@ -206,7 +207,7 @@ function readCase(root, folder, errors, warnings) {
     approvals: [...latest.values()].map(({ gate, date, approver, commit, stale }) => ({ gate, date, approver, commit, stale: Boolean(stale) })),
     reapproval: [...latest.values()].filter(approval => approval.stale).map(approval => approval.gate),
     remainingGates: GATES[size].filter(gate => !latest.has(gate)),
-    tasks, next: next.map(redact)
+    tasks, next: next.map(redact), guide: data.guide === 'on'
   };
 }
 
@@ -252,6 +253,7 @@ function format(result) {
     lines.push(`  残りの承認: ${summary.remainingGates.length ? summary.remainingGates.join('、') : 'なし'}`);
     lines.push(`  タスク: ${summary.tasks ? Object.entries(summary.tasks.counts).map(([status, count]) => `${status} ${count}`).join('、') || 'なし' : 'tasks.md なし'}`);
     lines.push(`  次の作業: ${summary.next.length ? summary.next.join(' / ') : '未記入'}`);
+    if (summary.guide) lines.push('  手引き: あり');
   }
   return lines.join('\n');
 }

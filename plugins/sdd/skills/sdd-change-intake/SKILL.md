@@ -11,7 +11,7 @@ user-invocable: true
 1. `docs/spec/changes/` のフォルダ名の一覧だけを見て、既存の案件と重ならない `CHG-0001` 形式の番号を選ぶ。既存の案件の続きらしければ、どの案件かを聞く。
 2. 種別（`new` / `enhancement` / `fix`）、目的、対象、対象外、承認者を確かめる。承認者の名前は推測しない。利用者本人でよい。
 3. 規模を推奨付きで聞く。数ファイルで済む修正・小さな改善は軽量（`light`: 要点 → 実装 → 完了）、新しい機能や影響の大きい変更は標準（`standard`: 壁打ち → 要件 → 設計 → 実装 → 完了）。
-4. [テンプレート](templates/status.md) から `docs/spec/changes/<ID>/status.md` を作る。`phase` は標準なら `ideation`、軽量なら `outline`、`state` は `active`。
+4. [テンプレート](templates/status.md) から `docs/spec/changes/<ID>/status.md` を作る。`phase` は標準なら `ideation`、軽量なら `outline`、`state` は `active`。手引き（伴走）を頼まれていたら、front matter の最後に `guide: on` の行を入れる（テンプレートには置かない）。
 5. `git status --short` と `git branch --show-current` を見て、ブランチ名 `change/<ID>` を示し、確認フォームで作成してよいか聞く。了承されたら `git switch -c change/<ID>` を実行し、`status.md` の `branch` に書く。未コミットの変更があって切り替えられない、Git が未初期化、などの場合は状況と選択肢を示す。断られたら作らない。
 6. 次の作業（標準は壁打ち、軽量は要点）を `status.md` に書き、利用者に伝えて止まる。次の工程は依頼を受けてから始める。
 

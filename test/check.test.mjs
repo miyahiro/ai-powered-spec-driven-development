@@ -157,3 +157,21 @@ test('links can be checked in a given folder without changing the default scope'
   assert.deepEqual(errors.map(error => error.path), ['plugins/sample/README.md']);
   assert.deepEqual(check(root).errors, []);
 });
+
+test('guide: on appears in the summary, other values are errors and no guide is fine', context => {
+  const root = fixture(context, { 'docs/spec/changes/CHG-0001/status.md': status({ guide: 'on' }) });
+  let result = check(root, 'CHG-0001');
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.summary.guide, true);
+  const text = execFileSync('node', [script, 'CHG-0001'], { cwd: root, encoding: 'utf8' });
+  assert.match(text, /^ {2}手引き: あり$/m);
+  assert.equal(JSON.parse(execFileSync('node', [script, 'CHG-0001', '--json'], { cwd: root, encoding: 'utf8' })).summary.guide, true);
+  writeFileSync(join(root, 'docs/spec/changes/CHG-0001/status.md'), status({ guide: 'yes' }));
+  result = check(root, 'CHG-0001');
+  assert.ok(result.errors.some(error => error.message.includes('guide の値が正しくありません: yes')));
+  writeFileSync(join(root, 'docs/spec/changes/CHG-0001/status.md'), status());
+  result = check(root, 'CHG-0001');
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.summary.guide, false);
+  assert.doesNotMatch(execFileSync('node', [script, 'CHG-0001'], { cwd: root, encoding: 'utf8' }), /手引き/);
+});

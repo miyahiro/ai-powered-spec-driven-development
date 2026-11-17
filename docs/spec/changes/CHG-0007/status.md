@@ -30,6 +30,8 @@ branch: change/CHG-0007
 | Q-7 | 今のブランチに案件がないときの工程の説明で、進行中の案件を示すか（深掘り） | 候補も示す（推奨）/ 受付だけ案内 | design | resolved | 候補も示す（DES-WF-007 工程に沿わない依頼） |
 | Q-8 | 案件がないときの手引きの後の受付で、`guide: on` を入れる役割（深掘り） | 受付スキルに1文足す（推奨）/ 窓口に任せる | design | resolved | 受付が `guide: on` を入れる（DES-WF-007 受付での伴走の開始） |
 | Q-9 | 軽量の案件で前の工程の承認がない依頼も同じ扱いにするか（深掘り） | 同じ扱い（推奨）/ 標準だけ | design | resolved | 同じ扱い（DES-WF-007 工程に沿わない依頼） |
+| Q-10 | marketplace.json（0.6.1）と plugin.json・package.json（0.6.0）の版の不一致をどうするか（実装） | この案件で 0.7.0 に揃える（推奨）/ 0.6.1 に揃える / 別の案件で直す | implementation | resolved | この案件で 0.7.0 に揃える（README の導入例のタグも合わせる） |
+| Q-11 | sdd-spec-check/SKILL.md の要約の項目に「手引き」を足すか（実装） | 足す（推奨）/ 足さない | implementation | resolved | 足す |
 
 ## 承認
 
@@ -40,4 +42,6 @@ branch: change/CHG-0007
 
 ## 次の作業
 
-- 実装: sdd-implementer にタスク分解（tasks.md）とテスト先行の実装を任せる。DES-WF-007 のほか、ユーザーガイドの区切りごとの依頼の例（Q-6）、plugins/sdd/README.md と test/customization.test.mjs のスキル数を含む（依頼を受けてから始める）
+- 独立レビュー: sdd-reviewer に実装と受入条件 AC-WF-013〜016 の一致を確かめてもらう
+- TASK-8: Copilot Local での対話の試行（AC-WF-013〜016。手順は tasks.md）を人が行い、結果を伝える
+- 完了の承認（タスクがすべて done になってから）

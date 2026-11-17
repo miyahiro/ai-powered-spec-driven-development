@@ -42,6 +42,9 @@ test('links in the edition resolve where they are written', context => {
   const agent = edition.files.get('.github/agents/sdd-orchestrator.agent.md').toString();
   assert.ok(agent.includes('](../sdd/common-rules.md)'), 'agents link to the common rules in .github/sdd');
   assert.ok(agent.includes('](../skills/sdd-change-intake/SKILL.md)'), 'agents link to skills in .github/skills');
+  const guide = edition.files.get('.github/skills/sdd-guide/SKILL.md')?.toString() ?? '';
+  const target = [...guide.matchAll(/\]\(([^)#\s]*user_guide\.md)[^)]*\)/g)].map(match => join('.github/skills/sdd-guide', match[1]));
+  assert.ok(target.length && target.every(path => path === join('.github/sdd/user_guide.md')), 'sdd-guide links to the user guide in .github/sdd');
 });
 
 test('links to the admin guide become the repository URL', () => {
