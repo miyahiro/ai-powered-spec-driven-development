@@ -3,8 +3,8 @@ id: CHG-0007
 title: sdd を使った開発を案内するガイド機能を加える
 kind: new
 size: standard
-phase: implementation
-state: active
+phase: done
+state: done
 approvers: 宮下 洋
 branch: change/CHG-0007
 ---
@@ -41,8 +41,9 @@ branch: change/CHG-0007
 | requirements | 2026-11-17 | 宮下 洋 | docs/spec/current/requirements/workflow-orchestration.md, docs/spec/current/requirements/README.md, docs/spec/changes/CHG-0007/idea.md |
 | design | 2026-11-17 | 宮下 洋 | docs/spec/current/design/workflow-orchestration.md, docs/spec/current/design/README.md, docs/spec/current/design/specification-management.md, docs/spec/current/design/tool-integration.md, docs/spec/current/design/development-verification.md |
 | design | 2026-11-17 | 宮下 洋 | docs/spec/current/design/workflow-orchestration.md, docs/spec/current/design/tool-integration.md, docs/spec/current/design/development-verification.md |
+| completion | 2026-11-17 | 宮下 洋 | plugins/sdd/skills/sdd-guide/SKILL.md, plugins/sdd/com.github.copilot/agents/sdd-orchestrator.agent.md, plugins/sdd/skills/sdd-change-intake/SKILL.md, plugins/sdd/skills/sdd-spec-check/SKILL.md, plugins/sdd/skills/sdd-spec-check/scripts/check.mjs, plugins/sdd/skills/sdd-workflow-status/SKILL.md, plugins/sdd/user_guide.md, plugins/sdd/README.md, plugins/sdd/plugin.json, package.json, .github/plugin/marketplace.json, test/check.test.mjs, test/customization.test.mjs, test/repository-edition.test.mjs, docs/spec/changes/CHG-0007/tasks.md |
 
 ## 次の作業
 
-- 実装: 窓口の「開発して」の振り分けの修正、sdd-guide の「文書にない手順や設定例を作らない」、Q-12 の実装、TASK-8 の再試行（AC-WF-016）
-- 完了の承認
+- 人が行う: change/CHG-0007 の push、main への PR とマージ、配布する版のタグ v0.7.0 の付与と push
+- 未確認の試行（tasks.md の TASK-8 の判定）は、必要なら別の案件で確かめる
