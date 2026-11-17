@@ -30,7 +30,7 @@ plugins/
       sdd-designer.agent.md         # 設計
       sdd-implementer.agent.md      # 実装
       sdd-reviewer.agent.md         # レビュー
-    skills/<name>/SKILL.md          # 14の手順（name は sdd- で始まる。必要なものは templates/ を持つ）
+    skills/<name>/SKILL.md          # 15の手順（name は sdd- で始まる。必要なものは templates/ を持つ）
     skills/sdd-spec-check/scripts/
       check.mjs                     # 検査スクリプト
 bin/
@@ -76,13 +76,13 @@ workspace の `.github/agents/`・`.github/skills/` に同じ名前のエージ�
 | ID の重複 | `docs/spec/current/requirements/` の表の先頭列の `REQ`・`NFR`・`AC`・`FUN` の ID、`docs/spec/current/design/` の `DES` の ID（見出しと表の先頭列） | エラー |
 | 受入条件のない要件 | 要件の `REQ`・`NFR` のうち、どの受入条件の「対象」にも出てこないもの | エラー |
 | リンク切れ | `docs/` と `.github/` の Markdown の相対リンク（ファイルと見出しのアンカー）。プラグインの中のリンクは、このリポジトリの構成のテストが同じ検査の関数で確かめる（DES-TOOL-006）。導入先のリポジトリ版も `.github/` にあるため、ここで検査される（`<名前>.new` は `.md` で終わらないので対象外） | エラー |
-| 状態ファイルの形式 | `docs/spec/changes/*/status.md` の frontmatter の項目と値、質問・承認の表の値（DES-SPEC-003） | エラー |
+| 状態ファイルの形式 | `docs/spec/changes/*/status.md` の frontmatter の項目と値（任意の `guide` があれば値が `on` か）、質問・承認の表の値（DES-SPEC-003） | エラー |
 | タスク一覧の形式 | `docs/spec/changes/*/tasks.md` の状態の値 | エラー |
 | 期限の来た質問 | 現在の工程までが期限の `open` の質問 | 警告 |
 | 承認後の変更 | 承認の行ごとに、`approve(<工程>): <変更ID>` のコミットと今の作業ツリーの差分を対象のパスについて取り、変わったファイルや未追跡のファイルがあるか | 警告 |
 | 承認のコミットがない | 承認の行に対応するコミットが見つからない | 警告 |
 
-変更 ID を指定すると、その案件の要約（題名・規模・工程・状態・ブランチと今のブランチ・期限の来た質問・承認と再承認が必要な工程・タスクの件数・次の作業）も出す。`--json` で同じ内容を JSON で出す。
+変更 ID を指定すると、その案件の要約（題名・規模・工程・状態・ブランチと今のブランチ・期限の来た質問・承認と再承認が必要な工程・タスクの件数・次の作業）も出す。`guide: on` の案件では「手引き: あり」の1行も出し、`guide` がなければその行を出さない。`--json` で同じ内容を JSON で出す（伴走は `summary.guide` の真偽値）。
 
 - 終了コードは、エラーがあれば 1、なければ 0。警告だけでは 0。
 - 出力には、ファイルのパス・行・ID・質問の文と要点だけを含める。文書の本文は出さない。token・鍵などの秘密らしい文字列は伏せて出す。
@@ -120,7 +120,7 @@ workspace の `.github/agents/`・`.github/skills/` に同じ名前のエージ�
 - 開発する人は、`chat.pluginLocations` に `plugins/sdd` を登録し、このリポジトリでもプラグインを使って開発する。リポジトリにはプラグインの外のエージェント・スキルを置かないため、登録したプラグインがそのまま使われる。
 - 今の配置からの移し方: プラグインは `.github/` の今のファイルを残したまま `plugins/sdd/` に写して作る。今のファイルが優先されて隠れるため、プラグインの動作は別の空の workspace に `plugins/sdd` を登録して確かめる。確かめた後、最後のタスクで `.github/agents/`・`.github/skills/`・`.github/instructions/`・`.github/sdd/` を消す。
 - テストはリポジトリのルートで `npm test` を実行する（依存なし）。`test/check.test.mjs` は検査スクリプトを、`test/customization.test.mjs` はプラグインの構成を確かめる。
-- 構成のテストで確かめること: `plugin.json` の `$schema` が Agent Plugins 1.0 の値であること、`name` と、マーケットプレイスの項目の `source`・`version` の一致。4つのエージェントが `com.github.copilot/agents/` にあり、ルート直下に `agents/` がないこと、エージェントの名前・ツール・`user-invocable`・呼べる担当と、本文の冒頭の共通ルールへのリンク。14のスキルの名前（先頭が `sdd-`）と手順の形。共通ルールの必須の規則（push をしない、`git add -A` を使わない、承認のコミットの形）が `common-rules.md` にあること。`sdd-spec-check` 以外にスクリプトのパスが書かれていないこと。プラグインの中の Markdown のリンク切れ（検査スクリプトのリンクの検査の関数を、対象のフォルダーを変えて使う）。このリポジトリが自分の検査でエラーにならないこと。
+- 構成のテストで確かめること: `plugin.json` の `$schema` が Agent Plugins 1.0 の値であること、`name` と、マーケットプレイスの項目の `source`・`version` の一致。4つのエージェントが `com.github.copilot/agents/` にあり、ルート直下に `agents/` がないこと、エージェントの名前・ツール・`user-invocable`・呼べる担当と、本文の冒頭の共通ルールへのリンク。15のスキルの名前（先頭が `sdd-`）と手順の形。共通ルールの必須の規則（push をしない、`git add -A` を使わない、承認のコミットの形）が `common-rules.md` にあること。`sdd-spec-check` 以外にスクリプトのパスが書かれていないこと。プラグインの中の Markdown のリンク切れ（検査スクリプトのリンクの検査の関数を、対象のフォルダーを変えて使う）。このリポジトリが自分の検査でエラーにならないこと。
 - 検査スクリプトは、リンクの検査の関数を対象のフォルダーを引数で受け取る形にしてテストから使えるようにする。導入先での検査の対象（`docs/` と `.github/`）は変えない。
 - VS Code での確認（エージェント・スキルが表示される、`tools`・`agents`・`user-invocable` が効く、共通ルールが読まれる、`sdd-spec-check` のスクリプトが相対パスで動く）は、手順と結果をタスク一覧に残す。
 - 書き出しのテスト（`test/repository-edition.test.mjs`）で確かめること: リポジトリ版のすべてのパスが `.github/agents/`・`.github/skills/`・`.github/sdd/` の中にあること。一時フォルダーに init し、検査スクリプトのリンクの検査（対象 `.github`）でエラーがないこと。導入・管理ガイドへのリンクが URL になっていること。`.github/copilot-instructions.md` と置き場所の外のファイルが変わらないこと。init を2回実行すると2回目は何も書かずに止まること。DES-TOOL-008 の判定表のすべての行（版の内容を書き換えた模擬の新しい版で update する）。status がファイルを変えないこと。

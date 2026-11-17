@@ -9,7 +9,7 @@
 | 設計 ID | 決定 |
 | --- | --- |
 | DES-COM-001 | 入口は VS Code の Copilot Chat とする。利用者は窓口のエージェント `sdd-orchestrator` に自然言語で依頼し、窓口が工程と担当を選ぶ。専用 UI は作らない。 |
-| DES-COM-002 | 構成は、共通ルール 1、エージェント 4（窓口・設計・実装・レビュー）、スキル 14、検査スクリプト 1 とし、プラグイン `sdd` にまとめる（DES-TOOL-001）。リポジトリ版はプラグインから書き出しスクリプトで作り、別に手で保たない（DES-TOOL-007）。手順はスキルに置き、エージェントは役割と使えるツールと共通ルールへの参照だけを持つ。 |
+| DES-COM-002 | 構成は、共通ルール 1、エージェント 4（窓口・設計・実装・レビュー）、スキル 15、検査スクリプト 1 とし、プラグイン `sdd` にまとめる（DES-TOOL-001）。リポジトリ版はプラグインから書き出しスクリプトで作り、別に手で保たない（DES-TOOL-007）。手順はスキルに置き、エージェントは役割と使えるツールと共通ルールへの参照だけを持つ。 |
 | DES-COM-003 | 状態は案件ごとの Markdown 1枚（`status.md`）で管理し、承認は Git のローカルのコミットとして残す。版の照合・操作 ID・復旧情報などの独自の状態管理は持たない（DES-WF-004、DES-SPEC-003）。 |
 | DES-COM-004 | 工程は規模で選ぶ。標準は「壁打ち → 要件 → 設計 → 実装 → 完了」で承認3回、軽量は「要点 → 実装 → 完了」で承認2回（DES-WF-001）。 |
 | DES-COM-005 | 操作の安全は Copilot / VS Code の標準の確認（ターミナルの実行、ファイルの編集）に任せる。独自の hook・ガード・隔離実行は持たない。AI の Git 操作は状態の確認、確認後のローカルのブランチ作成、ローカルのコミットに限る（DES-TOOL-002）。 |
@@ -35,7 +35,7 @@ flowchart LR
 
 | 文書 | 対象 |
 | --- | --- |
-| [workflow-orchestration.md](workflow-orchestration.md) | 対話と工程、エージェント、スキル、承認とコミット、委任、中断と再開 |
+| [workflow-orchestration.md](workflow-orchestration.md) | 対話と工程、エージェント、スキル、承認とコミット、委任、中断と再開、ガイド |
 | [specification-management.md](specification-management.md) | 原本と変更記録の配置、成果物の作成規約、`status.md`・`tasks.md` の書式、ADR |
 | [tool-integration.md](tool-integration.md) | 環境と配置、Git の操作、検査スクリプト、安全、導入、リポジトリ版の書き出しと更新 |
 | [development-verification.md](development-verification.md) | タスク、テスト先行の実装、確認の記録、レビューと完了、受入確認計画 |
