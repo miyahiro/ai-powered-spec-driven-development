@@ -175,3 +175,56 @@ test('guide: on appears in the summary, other values are errors and no guide is 
   assert.equal(result.summary.guide, false);
   assert.doesNotMatch(execFileSync('node', [script, 'CHG-0001'], { cwd: root, encoding: 'utf8' }), /手引き/);
 });
+
+test('cases in progress on other local branches are listed without switching branches', context => {
+  const root = fixture(context, { 'docs/spec/current/requirements/inquiry.md': requirements });
+  git(root, 'branch', '-m', 'main');
+  const commit = (...args) => git(root, '-c', 'user.name=test', '-c', 'user.email=test@example.com', 'commit', '-q', ...args);
+  const branchWith = (branch, folder, content) => {
+    git(root, 'switch', '-q', '-c', branch, 'main');
+    mkdirSync(join(root, 'docs/spec/changes', folder), { recursive: true });
+    if (content !== null) writeFileSync(join(root, 'docs/spec/changes', folder, 'status.md'), content);
+    else writeFileSync(join(root, 'docs/spec/changes', folder, 'idea.md'), '# x\n');
+    git(root, 'add', '--', 'docs/spec/changes');
+    commit('-m', `add ${folder}`);
+  };
+  const statusOf = (id, extra) => status(extra).replace(/CHG-0001/g, id);
+  mkdirSync(join(root, 'docs/spec/changes/CHG-0007'), { recursive: true });
+  writeFileSync(join(root, 'docs/spec/changes/CHG-0007/status.md'), statusOf('CHG-0007', { branch: 'change/CHG-0007' }));
+  git(root, 'add', '--', 'docs/spec/changes');
+  commit('-m', 'CHG-0007 on main');
+  git(root, 'branch', 'change/CHG-0007');
+  branchWith('change/CHG-0002', 'CHG-0002', statusOf('CHG-0002', { size: 'standard', phase: 'design', branch: 'change/CHG-0002', title: `設計中 ghp_${'b'.repeat(30)}` }));
+  branchWith('change/CHG-0003', 'CHG-0003', statusOf('CHG-0003', { phase: 'implementation', state: 'done', branch: 'change/CHG-0003' }));
+  branchWith('change/CHG-0004', 'CHG-0004', statusOf('CHG-0004', { branch: 'change/other' }));
+  branchWith('change/CHG-0005', 'CHG-0005', null);
+  branchWith('copy/CHG-0002', 'CHG-0002', statusOf('CHG-0002', { size: 'standard', phase: 'design', branch: 'copy/CHG-0002' }));
+  branchWith('change/CHG-0006', 'CHG-0006', 'no frontmatter\n');
+  git(root, 'switch', '-q', 'main');
+  const before = snapshot(root);
+  const result = check(root);
+  assert.deepEqual(result.otherBranchCases, [{ id: 'CHG-0002', title: `設計中 [REDACTED]`, size: 'standard', phase: 'design', state: 'active', branch: 'change/CHG-0002' }]);
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.warnings, []);
+  const text = execFileSync('node', [script], { cwd: root, encoding: 'utf8' });
+  assert.match(text, /^他のブランチの進行中の案件: CHG-0002 設計中 \[REDACTED\]（change\/CHG-0002、design \/ active）$/m);
+  assert.equal(JSON.parse(execFileSync('node', [script, '--json'], { cwd: root, encoding: 'utf8' })).otherBranchCases.length, 1);
+  const missing = check(root, 'CHG-0002').errors.find(error => error.message.startsWith('案件の状態ファイルがありません'));
+  assert.ok(missing?.message.includes('change/CHG-0002'), 'the error names the branch that has the case');
+  assert.deepEqual(snapshot(root), before);
+  assert.equal(git(root, 'branch', '--show-current'), 'main');
+});
+
+test('without other cases the list is empty, and without Git it cannot be checked', context => {
+  const root = fixture(context, { 'docs/spec/changes/CHG-0001/status.md': status() });
+  assert.deepEqual(check(root).otherBranchCases, []);
+  assert.match(execFileSync('node', [script], { cwd: root, encoding: 'utf8' }), /^他のブランチの進行中の案件: なし$/m);
+  const plain = mkdtempSync(join(tmpdir(), 'sdd-nogit-'));
+  context.after(() => rmSync(plain, { recursive: true, force: true }));
+  mkdirSync(join(plain, 'docs/spec/changes/CHG-0001'), { recursive: true });
+  writeFileSync(join(plain, 'docs/spec/changes/CHG-0001/status.md'), status());
+  const result = check(plain);
+  assert.equal(result.otherBranchCases, null);
+  assert.deepEqual(result.errors, []);
+  assert.match(execFileSync('node', [script], { cwd: plain, encoding: 'utf8', env: { ...process.env, GIT_CEILING_DIRECTORIES: tmpdir() } }), /^他のブランチの進行中の案件: 確かめられない$/m);
+});

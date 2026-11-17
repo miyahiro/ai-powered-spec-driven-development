@@ -27,3 +27,9 @@
 - 検査スクリプトの `guide` のテスト: `node --test test/check.test.mjs`。構成（スキル数・窓口の依頼表）: `node --test test/customization.test.mjs`。リポジトリ版のリンク: `node --test test/repository-edition.test.mjs`。
 - 対話の試行の手順は tasks.md の TASK-8 にある（未実施）。
 - 版を 0.7.0 に揃えた後は `npm test` が32件すべて成功する。版の番号は plugins/sdd/plugin.json・package.json・.github/plugin/marketplace.json のほか、plugins/sdd/README.md の 55・69・81 行（導入例のタグと版の表示例）にもある。docs/spec/current/design/tool-integration.md 178 行の version は記録の書式の例。
+
+## 他のブランチの案件の一覧（実装）
+
+- 他のブランチの `status.md` はブランチを切り替えずに `git ls-tree -d --name-only refs/heads/<ブランチ> docs/spec/changes/` と `git show refs/heads/<ブランチ>:./docs/spec/changes/<フォルダ>/status.md` で読める。`show` のパスを `./` 始まりにすると、workspace がリポジトリのルートでなくても今のフォルダーからの相対になる（check.mjs の `otherBranchCases`）。
+- テストで一時的なリポジトリに複数のブランチを作るとき、未追跡のファイルを別のブランチでコミットしてから戻ると作業ツリーから消える。今のブランチにある案件の除外を確かめるには、main でコミットしてからブランチを作る（test/check.test.mjs）。
+- このリポジトリ（change/CHG-0007）で変更 ID なしの検査を実行すると、`CHG-0003（change/CHG-0003、design / active）` が他のブランチの進行中の案件として出る。

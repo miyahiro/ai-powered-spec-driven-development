@@ -105,7 +105,7 @@ node ~/sdd-src/bin/sdd.mjs init       # npx -y ~/sdd-src init でも同じ
 
 ```sh
 SDD_CHECK=~/.copilot/installed-plugins/spec-driven-development/sdd/skills/sdd-spec-check/scripts/check.mjs
-node "$SDD_CHECK"                  # 全体の検査
+node "$SDD_CHECK"                  # 全体の検査と、他のブランチの進行中の案件の一覧
 node "$SDD_CHECK" CHG-0001         # 検査と、案件の状況の要約
 node "$SDD_CHECK" CHG-0001 --json
 ```
