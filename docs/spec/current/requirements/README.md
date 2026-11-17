@@ -18,7 +18,7 @@ GitHub Copilot / VS Code 上で動作する、スペック駆動開発用の AI 
 
 | 大分類 | 名称・範囲 | 機能（定義先） |
 | --- | --- | --- |
-| CAT-FLOW 工程進行 | 入口、受付、工程、承認、質問、状態ファイル、委任、共通ルール | FUN-COM-001、FUN-COM-003、FUN-WF-001〜006（[common.md](common.md)、[workflow-orchestration.md](workflow-orchestration.md)） |
+| CAT-FLOW 工程進行 | 入口、受付、工程、承認、質問、状態ファイル、委任、使い方と工程の案内、共通ルール | FUN-COM-001、FUN-COM-003、FUN-WF-001〜007（[common.md](common.md)、[workflow-orchestration.md](workflow-orchestration.md)） |
 | CAT-AUTHOR 仕様作成 | 壁打ち、要件・要点、設計、設計判断記録 | FUN-SPEC-001〜004（[specification-management.md](specification-management.md)） |
 | CAT-CANON 原本管理 | 原本と変更記録、影響分析、整合性の検査 | FUN-SPEC-005〜007（[specification-management.md](specification-management.md)） |
 | CAT-DEV 開発検証 | タスク分解、テスト先行の実装、確認の記録、完了 | FUN-DEV-001〜003（[development-verification.md](development-verification.md)） |

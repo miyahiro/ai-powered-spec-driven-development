@@ -69,11 +69,13 @@ test('four agents have explicit roles, least privilege and read the common rules
     assert.ok(opening.includes('](../../common-rules.md)'), `${name}: reads the common rules first`);
   }
   assert.deepEqual(frontmatter(resolve(folder, 'sdd-orchestrator.agent.md')).agents, ['sdd-designer', 'sdd-implementer', 'sdd-reviewer']);
+  const table = read(resolve(folder, 'sdd-orchestrator.agent.md')).split('\n').filter(line => line.startsWith('|'));
+  assert.ok(table.some(line => line.includes('](../../skills/sdd-guide/SKILL.md)')), 'the orchestrator dispatches to sdd-guide');
 });
 
-test('fourteen discoverable skills have matching names and actionable procedures', () => {
+test('fifteen discoverable skills have matching names and actionable procedures', () => {
   const folder = resolve(plugin, 'skills');
-  const expected = ['change-intake', 'workflow-status', 'clarification', 'grill-me', 'phase-approval', 'idea-dialogue', 'requirements-definition', 'external-design', 'ddd-internal-design', 'change-impact-analysis', 'task-planning', 'tdd-cycle', 'review', 'spec-check'].map(name => `sdd-${name}`);
+  const expected = ['change-intake', 'workflow-status', 'clarification', 'grill-me', 'phase-approval', 'idea-dialogue', 'requirements-definition', 'external-design', 'ddd-internal-design', 'change-impact-analysis', 'task-planning', 'tdd-cycle', 'review', 'spec-check', 'guide'].map(name => `sdd-${name}`);
   assert.deepEqual(list(folder).sort(), [...expected].sort());
   for (const name of expected) {
     const path = resolve(folder, name, 'SKILL.md');

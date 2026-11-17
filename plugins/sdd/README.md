@@ -14,7 +14,7 @@ GitHub Copilot / VS Code で、アイデアから実装・検証までを、AI �
 | `plugin.json` | プラグインのマニフェスト（Agent Plugins 1.0 の形式。名前 `sdd`、版） |
 | `common-rules.md` | 全エージェントが作業の前に読む共通ルール |
 | `com.github.copilot/agents/` | 4つのエージェント（窓口・設計・実装・レビュー） |
-| `skills/` | 14の手順（受付、状況確認、質問、深掘り、承認、壁打ち、要件、外部設計、内部設計、影響の調査、タスク分解、TDD、レビュー、検査）とテンプレート |
+| `skills/` | 15の手順（受付、状況確認、質問、深掘り、承認、壁打ち、要件、外部設計、内部設計、影響の調査、タスク分解、TDD、レビュー、検査、ガイド）とテンプレート |
 | `skills/sdd-spec-check/scripts/check.mjs` | 検査スクリプト（読み取りだけ、依存なし） |
 
 リポジトリ版では、エージェントは `.github/agents/`、スキルは `.github/skills/`、共通ルールとユーザーガイドと記録（`manifest.json`）は `.github/sdd/` に置かれます。`plugin.json` と本書は書き出しません。
@@ -52,7 +52,7 @@ Node.js 20 以上と Git（npx が GitHub からこのリポジトリを取得�
 1. 導入先のリポジトリのルートで、版（Git のタグまたはブランチ）を指定して実行します。チームでは、同じ版を再現できるタグを勧めます。
 
    ```sh
-   npx -y github:miyahiro/ai-powered-spec-drivien-development#v0.6.0 init    # タグを指定
+   npx -y github:miyahiro/ai-powered-spec-drivien-development#v0.7.0 init    # タグを指定
    npx -y github:miyahiro/ai-powered-spec-drivien-development#main init      # ブランチを指定
    ```
 
@@ -66,7 +66,7 @@ Node.js 20 以上と Git（npx が GitHub からこのリポジトリを取得�
 | 更新 | `npx -y github:miyahiro/ai-powered-spec-drivien-development#<版> update` | 手で変えていないファイルを指定した版に置き換え、指定した版にないファイルを削除する。手で変えたファイルは上書き・削除せず、隣に `.new` を置く。古い版を指定すると、その版に戻る |
 | 状況 | `npx -y github:miyahiro/ai-powered-spec-drivien-development#<版> status` | 記録の版と、手で変えた・手で消したファイルを示す。ファイルは変えない |
 
-- 版は `0.6.0（3aa93b05e8f4）` のように、版の番号と内容の要約値で示します。ブランチを指定すると、同じ番号で中身が違うことがあるためです。
+- 版は `0.7.0（3aa93b05e8f4）` のように、版の番号と内容の要約値で示します。ブランチを指定すると、同じ番号で中身が違うことがあるためです。
 - `.new` の内容を取り込んで同じ内容にすると、次の更新からは手で変えていないものとして扱われます。取り込まずに残した変更は、次の更新でも守られます。
 - スキルやエージェントを手で消すと、更新しても戻りません。ほかのファイルからのリンクが切れて、検査でエラーになることがあるため、使わないものも消さずに残すことを勧めます。消したものを戻したいときは、記録の `files` からその行を消して update を実行します。
 - 取り除くときは、記録の `files` にあるファイルと `.github/sdd/` を消します。
@@ -78,7 +78,7 @@ GitHub から取得できないとき、または手元で中身を確かめて�
 
 ```sh
 git clone https://github.com/miyahiro/ai-powered-spec-drivien-development.git ~/sdd-src
-git -C ~/sdd-src checkout v0.6.0      # 版は clone の側で切り替える
+git -C ~/sdd-src checkout v0.7.0      # 版は clone の側で切り替える
 
 cd <導入先のリポジトリ>
 node ~/sdd-src/bin/sdd.mjs init       # npx -y ~/sdd-src init でも同じ
@@ -105,7 +105,7 @@ node ~/sdd-src/bin/sdd.mjs init       # npx -y ~/sdd-src init でも同じ
 
 ```sh
 SDD_CHECK=~/.copilot/installed-plugins/spec-driven-development/sdd/skills/sdd-spec-check/scripts/check.mjs
-node "$SDD_CHECK"                  # 全体の検査
+node "$SDD_CHECK"                  # 全体の検査と、他のブランチの進行中の案件の一覧
 node "$SDD_CHECK" CHG-0001         # 検査と、案件の状況の要約
 node "$SDD_CHECK" CHG-0001 --json
 ```

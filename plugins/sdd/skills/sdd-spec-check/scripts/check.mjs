@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SDD の検査スクリプト。ファイルを書き換えず、Git は読み取りのコマンドだけを使う。
+// SDD の検査スクリプト。ファイルを書き換えず、Git は読み取りのコマンドだけを使い、ブランチを切り替えない。
 import { readFileSync, readdirSync, existsSync, statSync, realpathSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -145,6 +145,7 @@ function readCase(root, folder, errors, warnings) {
   if (!PHASES[size]) { fail(`size の値が正しくありません: ${size}`); return null; }
   if (!PHASES[size].includes(data.phase)) fail(`phase の値が size=${size} に合いません: ${data.phase}`);
   if (!STATES.includes(data.state)) fail(`state の値が正しくありません: ${data.state}`);
+  if (Object.hasOwn(data, 'guide') && data.guide !== 'on') fail(`guide の値が正しくありません: ${data.guide}`);
   const approvers = (data.approvers ?? '').split(/[、,]/).map(name => name.trim()).filter(Boolean);
   if (!approvers.length) fail('approvers が空です');
   const questions = [];
@@ -206,8 +207,28 @@ function readCase(root, folder, errors, warnings) {
     approvals: [...latest.values()].map(({ gate, date, approver, commit, stale }) => ({ gate, date, approver, commit, stale: Boolean(stale) })),
     reapproval: [...latest.values()].filter(approval => approval.stale).map(approval => approval.gate),
     remainingGates: GATES[size].filter(gate => !latest.has(gate)),
-    tasks, next: next.map(redact)
+    tasks, next: next.map(redact), guide: data.guide === 'on'
   };
+}
+
+// 他のローカルのブランチにだけある進行中の案件。ブランチは切り替えず、ls-tree と show で読む。Git が使えなければ null。
+function otherBranchCases(root) {
+  const refs = git(root, ['for-each-ref', '--format=%(refname)', 'refs/heads']);
+  if (refs === null) return null;
+  const current = git(root, ['branch', '--show-current']) ?? '';
+  const branches = refs.split('\n').map(ref => ref.replace(/^refs\/heads\//, '')).filter(name => name && name !== current).sort();
+  const found = new Map();
+  for (const branch of branches) {
+    const folders = (git(root, ['ls-tree', '-d', '--name-only', `refs/heads/${branch}`, 'docs/spec/changes/']) ?? '').split('\n').filter(Boolean).map(path => path.split('/').pop());
+    for (const folder of folders) {
+      if (found.has(folder) || existsSync(join(root, 'docs/spec/changes', folder))) continue;
+      const text = git(root, ['show', `refs/heads/${branch}:./docs/spec/changes/${folder}/status.md`]);
+      const data = text === null ? null : frontmatter(text);
+      if (!data || data.branch !== branch || data.state === 'done') continue;
+      found.set(folder, { id: folder, title: redact(data.title ?? ''), size: data.size ?? null, phase: data.phase ?? null, state: data.state ?? null, branch });
+    }
+  }
+  return [...found.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
 
 export function check(workspace, changeId = null) {
@@ -227,7 +248,10 @@ export function check(workspace, changeId = null) {
   let summary = null;
   if (changeId) {
     summary = cases[changeId] ?? null;
-    if (!summary) errors.push({ path: `docs/spec/changes/${changeId}/status.md`, line: 1, message: '案件の状態ファイルがありません' });
+    if (!summary) {
+      const elsewhere = (otherBranchCases(root) ?? []).find(item => item.id === changeId);
+      errors.push({ path: `docs/spec/changes/${changeId}/status.md`, line: 1, message: `案件の状態ファイルがありません${elsewhere ? `（他のブランチ ${elsewhere.branch} にあります）` : ''}` });
+    }
     else {
       const current = git(root, ['branch', '--show-current']);
       summary.currentBranch = current || null;
@@ -235,13 +259,19 @@ export function check(workspace, changeId = null) {
     }
   }
   const scope = changeId ? item => !item.path.startsWith('docs/spec/changes/') || item.path.startsWith(`docs/spec/changes/${changeId}/`) : () => true;
-  return { errors, warnings: warnings.filter(scope), summary };
+  const result = { errors, warnings: warnings.filter(scope), summary };
+  if (!changeId) result.otherBranchCases = otherBranchCases(root);
+  return result;
 }
 
 function format(result) {
   const lines = [`検査: エラー ${result.errors.length} 件、警告 ${result.warnings.length} 件`];
   for (const item of result.errors) lines.push(`ERROR ${item.path}:${item.line} ${redact(item.message)}`);
   for (const item of result.warnings) lines.push(`WARN  ${item.path}:${item.line} ${redact(item.message)}`);
+  if (Object.hasOwn(result, 'otherBranchCases')) {
+    const others = result.otherBranchCases;
+    lines.push(`他のブランチの進行中の案件: ${others === null ? '確かめられない' : others.length ? others.map(item => `${item.id} ${redact(item.title)}（${item.branch}、${item.phase} / ${item.state}）`).join(' / ') : 'なし'}`);
+  }
   const summary = result.summary;
   if (summary) {
     lines.push('', `${summary.id} ${redact(summary.title)}（${summary.size === 'light' ? '軽量' : '標準'}）`);
@@ -252,6 +282,7 @@ function format(result) {
     lines.push(`  残りの承認: ${summary.remainingGates.length ? summary.remainingGates.join('、') : 'なし'}`);
     lines.push(`  タスク: ${summary.tasks ? Object.entries(summary.tasks.counts).map(([status, count]) => `${status} ${count}`).join('、') || 'なし' : 'tasks.md なし'}`);
     lines.push(`  次の作業: ${summary.next.length ? summary.next.join(' / ') : '未記入'}`);
+    if (summary.guide) lines.push('  手引き: あり');
   }
   return lines.join('\n');
 }

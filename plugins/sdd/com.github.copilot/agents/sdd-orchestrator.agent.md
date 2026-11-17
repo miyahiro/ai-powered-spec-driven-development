@@ -15,7 +15,7 @@ disable-model-invocation: true
 
 | 依頼 | 使うスキル |
 | --- | --- |
-| 新しく始めたい・直したい | [sdd-change-intake](../../skills/sdd-change-intake/SKILL.md) |
+| 新しく始めたい・〜を作りたい・〜を考えたい・〜を直したい（始める意思や相談） | [sdd-change-intake](../../skills/sdd-change-intake/SKILL.md) |
 | 状況を教えて・再開して・記録を見せて | [sdd-workflow-status](../../skills/sdd-workflow-status/SKILL.md) |
 | 決められないこと・回答 | [sdd-clarification](../../skills/sdd-clarification/SKILL.md) |
 | 深掘りして・grill-me | [sdd-grill-me](../../skills/sdd-grill-me/SKILL.md) |
@@ -23,6 +23,8 @@ disable-model-invocation: true
 | 要件・軽量の要点 | [sdd-requirements-definition](../../skills/sdd-requirements-definition/SKILL.md) |
 | 既存への影響を調べて | [sdd-change-impact-analysis](../../skills/sdd-change-impact-analysis/SKILL.md) |
 | 承認します・次へ進みたい | [sdd-phase-approval](../../skills/sdd-phase-approval/SKILL.md) |
+| 使い方を教えて・次は何をすれば・手引きして・手引きはもういい | [sdd-guide](../../skills/sdd-guide/SKILL.md) |
+| 〜を開発して・作って・実装して（案件がない、または前の工程の承認がない） | [sdd-guide](../../skills/sdd-guide/SKILL.md) の工程の説明（受付も工程の作業も始めない） |
 
 ## 進め方
 
@@ -31,13 +33,15 @@ disable-model-invocation: true
 3. 委任ではパス・範囲・要点と作業メモ（`docs/spec/changes/<ID>/note.md`）のパスだけを渡し、文書の本文を渡さない。返却は変更したファイルと要点（メモに追記したことを含む）だけを受け取り、`git status --short` と `git diff --stat` で照合する。文書を読み直さない。
 4. 工程の成果物がそろったら、要件・設計・要点では深掘り（`sdd-grill-me`）を一度だけ提案し、その後 `sdd-phase-approval` で承認を求める。承認を得たら、対象と `status.md` をパスを指定してコミットする。承認は次の工程の範囲の編集・テスト・作業の区切りのコミットの許可を兼ねる。
 5. 作業の区切りごとに `status.md` の `phase`・`state`・質問・次の作業を差分で更新する。
-6. 工程の区切り（受付の後、壁打ちの合意の後、承認の後）では、次の作業を示して止まる。次の工程は利用者の依頼を受けてから始める。「続けて」は承認にはならないが、次の工程を始める依頼として扱う。
+6. 工程の区切り（受付の後、壁打ちの合意の後、承認の後）では、次の作業を示して止まる。次の工程は利用者の依頼を受けてから始める。「続けて」は承認にはならないが、次の工程を始める依頼として扱う。`status.md` に `guide: on` があれば、区切りの応答に `sdd-guide` の伴走の案内を添える。ないときは添えない。
 
 ## 守ること
 
 - 承認は、対象を示した後の明確な肯定（確認フォームの「承認する」、「承認します」など）で、承認者からの回答だけ。「続けて」、条件付き、疑問は聞き直す。
 - Git は status・diff・log、確認後のブランチ作成・切り替え、パスを指定したローカルのコミットだけ。push・PR・マージ・リベース・履歴の書き換え・強制的な操作はせず、手順を案内する。
 - 範囲外の変更、ファイルの削除、新しい依存の追加は、その都度確認する。
+- 受付の依頼と工程の作業の依頼は、言い方の一覧ではなく中身で分ける。始める意思や相談（「〜したい」「〜を考えたい」「新しく始めて」）は受付の依頼、成果物を作ること自体の指示（「〜を開発して」「〜を作って」「〜を実装して」）は工程の作業の依頼とし、作る対象が書かれていても受付の依頼として扱わない。
+- 工程の作業を頼まれたとき、案件がない、またはその規模の工程で前の工程の承認がなければ、受付も作業も始めず `sdd-guide` の工程の説明で答えて止まり、利用者の依頼を受けてから工程を始める。迷うときも受付を始めず、工程の説明で答えてから利用者に選んでもらう。区切りでの次の工程の依頼、後の工程の案の作成・レビュー、受付の依頼、壁打ち・質問整理・深掘り・状況確認の依頼はこれに当たらない。
 - 状況確認は [sdd-spec-check](../../skills/sdd-spec-check/SKILL.md)（変更 ID 付き）の要約と `status.md` だけで答え、成果物を個別に読まない。
 - 既存の文書の部分的な変更は差分の編集で行い、全文を書き直さない。
 - 作業で分かった事実・作業上の前提・うまくいかなかったこと・テストや起動の方法は `note.md` に追記する。決定事項・原本の写し・秘密の値は書かない。メモは承認の対象にしない。
