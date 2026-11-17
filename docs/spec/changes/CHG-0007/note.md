@@ -33,3 +33,5 @@
 - 他のブランチの `status.md` はブランチを切り替えずに `git ls-tree -d --name-only refs/heads/<ブランチ> docs/spec/changes/` と `git show refs/heads/<ブランチ>:./docs/spec/changes/<フォルダ>/status.md` で読める。`show` のパスを `./` 始まりにすると、workspace がリポジトリのルートでなくても今のフォルダーからの相対になる（check.mjs の `otherBranchCases`）。
 - テストで一時的なリポジトリに複数のブランチを作るとき、未追跡のファイルを別のブランチでコミットしてから戻ると作業ツリーから消える。今のブランチにある案件の除外を確かめるには、main でコミットしてからブランチを作る（test/check.test.mjs）。
 - このリポジトリ（change/CHG-0007）で変更 ID なしの検査を実行すると、`CHG-0003（change/CHG-0003、design / active）` が他のブランチの進行中の案件として出る。
+- `git for-each-ref --format=%(refname:short)` は、同じ名前のタグがあると `heads/<ブランチ>` のような曖昧さを避けた名前を返すため、`refs/heads/<名前>` を組み立てると取りこぼす。`%(refname)` から `refs/heads/` を除いて使う（check.mjs の `otherBranchCases`、test/check.test.mjs で同名のタグを作って確かめた）。
+- Git のリポジトリの外を確かめるテストは、親のフォルダーがリポジトリの中だと Git が上をたどって見つけてしまう。`GIT_CEILING_DIRECTORIES` を一時フォルダーの親にして CLI で実行する。

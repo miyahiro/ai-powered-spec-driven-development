@@ -10,7 +10,7 @@ user-invocable: true
 
 答えの中身は [ユーザーガイド](../../user_guide.md) などの文書から引き、このスキルには持たない。ファイルを変えるのは `status.md` の `guide` の行だけ。工程も受付も始めない。ブランチを切り替えない。承認しない。コミットしない。
 
-案件とブランチの一覧は [sdd-spec-check](../sdd-spec-check/SKILL.md) の出力（要約と「他のブランチの進行中の案件」）と今のブランチの `docs/spec/changes/` だけから作る。Git の `branch`・`show`・`for-each-ref`・`ls-tree`・`log` などを自分で実行しない。
+今のブランチは `git status`（読み取り）で確かめてよい。それ以外の Git のコマンド（`branch`・`show`・`for-each-ref`・`ls-tree` など）は実行せず、案件とブランチの一覧は [sdd-spec-check](../sdd-spec-check/SKILL.md) の出力（要約と「他のブランチの進行中の案件」）と今のブランチの `docs/spec/changes/` から作る。
 
 1. 入力の言葉から、下の5つの場面のどれかを選ぶ。選べなければ、どれを求めているかを1問で聞く。
 2. 場面ごとに、表の「読むもの」だけを読み、「出力」の形で答える。読むのは必要な節だけとし、案件の成果物（要件・設計・タスク・コード）は読まない。

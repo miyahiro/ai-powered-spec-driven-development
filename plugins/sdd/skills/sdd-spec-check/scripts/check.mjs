@@ -213,9 +213,10 @@ function readCase(root, folder, errors, warnings) {
 
 // 他のローカルのブランチにだけある進行中の案件。ブランチは切り替えず、ls-tree と show で読む。Git が使えなければ null。
 function otherBranchCases(root) {
-  if (git(root, ['rev-parse', '--git-dir']) === null) return null;
+  const refs = git(root, ['for-each-ref', '--format=%(refname)', 'refs/heads']);
+  if (refs === null) return null;
   const current = git(root, ['branch', '--show-current']) ?? '';
-  const branches = (git(root, ['for-each-ref', '--format=%(refname:short)', 'refs/heads']) ?? '').split('\n').filter(name => name && name !== current).sort();
+  const branches = refs.split('\n').map(ref => ref.replace(/^refs\/heads\//, '')).filter(name => name && name !== current).sort();
   const found = new Map();
   for (const branch of branches) {
     const folders = (git(root, ['ls-tree', '-d', '--name-only', `refs/heads/${branch}`, 'docs/spec/changes/']) ?? '').split('\n').filter(Boolean).map(path => path.split('/').pop());

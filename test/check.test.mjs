@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import * as checker from '../plugins/sdd/skills/sdd-spec-check/scripts/check.mjs';
 
@@ -201,6 +201,7 @@ test('cases in progress on other local branches are listed without switching bra
   branchWith('copy/CHG-0002', 'CHG-0002', statusOf('CHG-0002', { size: 'standard', phase: 'design', branch: 'copy/CHG-0002' }));
   branchWith('change/CHG-0006', 'CHG-0006', 'no frontmatter\n');
   git(root, 'switch', '-q', 'main');
+  git(root, 'tag', 'change/CHG-0002', 'main');
   const before = snapshot(root);
   const result = check(root);
   assert.deepEqual(result.otherBranchCases, [{ id: 'CHG-0002', title: `設計中 [REDACTED]`, size: 'standard', phase: 'design', state: 'active', branch: 'change/CHG-0002' }]);
@@ -223,8 +224,9 @@ test('without other cases the list is empty, and without Git it cannot be checke
   context.after(() => rmSync(plain, { recursive: true, force: true }));
   mkdirSync(join(plain, 'docs/spec/changes/CHG-0001'), { recursive: true });
   writeFileSync(join(plain, 'docs/spec/changes/CHG-0001/status.md'), status());
-  const result = check(plain);
+  const env = { ...process.env, GIT_CEILING_DIRECTORIES: dirname(plain) };
+  const result = JSON.parse(execFileSync('node', [script, '--json'], { cwd: plain, encoding: 'utf8', env }));
   assert.equal(result.otherBranchCases, null);
   assert.deepEqual(result.errors, []);
-  assert.match(execFileSync('node', [script], { cwd: plain, encoding: 'utf8', env: { ...process.env, GIT_CEILING_DIRECTORIES: tmpdir() } }), /^他のブランチの進行中の案件: 確かめられない$/m);
+  assert.match(execFileSync('node', [script], { cwd: plain, encoding: 'utf8', env }), /^他のブランチの進行中の案件: 確かめられない$/m);
 });
