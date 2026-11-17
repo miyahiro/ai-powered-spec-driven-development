@@ -42,6 +42,6 @@ branch: change/CHG-0007
 
 ## 次の作業
 
-- 独立レビュー: sdd-reviewer に実装と受入条件 AC-WF-013〜016 の一致を確かめてもらう
+- 独立レビュー: 済み（sdd-reviewer、825e137 に対して。重大な指摘なし、中1・低3は TASK-11〜13・TASK-7 で対応）
 - TASK-8: Copilot Local での対話の試行（AC-WF-013〜016。手順は tasks.md）を人が行い、結果を伝える
 - 完了の承認（タスクがすべて done になってから）
